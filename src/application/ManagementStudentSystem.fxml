@@ -1,0 +1,1306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainController">
+   <children>
+      <Label fx:id="MenuLabel" layoutX="286.0" layoutY="191.0" text="Menu" visible="false" />
+      <MenuBar layoutY="1.0" prefHeight="26.0" prefWidth="600.0">
+        <menus>
+          <Menu mnemonicParsing="false" text="Add">
+            <items>
+                  <MenuItem fx:id="addStudentButton" mnemonicParsing="false" onAction="#addStudentButtonListener" text="Student" />
+                  <MenuItem fx:id="addCourseButton" mnemonicParsing="false" onAction="#addCourseButtonListener" text="Course" />
+              <MenuItem fx:id="addEnrollmentButton" mnemonicParsing="false" onAction="#addEnrollmentButtonListener" text="Enrollment" />
+                  <MenuItem mnemonicParsing="false" onAction="#addDepartmentButtonListener" text="Department" />
+                  <MenuItem mnemonicParsing="false" onAction="#addInstructorButtonListener" text="Instructor" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Search">
+            <items>
+              <MenuItem fx:id="searchStudentButton" mnemonicParsing="false" onAction="#searchStudentButtonListener" text="Student" />
+                  <MenuItem fx:id="searchCourseButton" mnemonicParsing="false" onAction="#searchCourseButtonListener" text="Course" />
+                  <MenuItem fx:id="searchEnrollmentButton" mnemonicParsing="false" onAction="#searchEnrollmentButtonListener" text="Enrollment" />
+                  <MenuItem mnemonicParsing="false" onAction="#searchDepartmentButtonListener" text="Department" />
+                  <MenuItem mnemonicParsing="false" onAction="#searchInstructorButtonListener" text="Instructor" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Grade Management">
+            <items>
+              <MenuItem fx:id="manageGradesButton" mnemonicParsing="false" onAction="#manageGradesButtonListener" text="Manage Grades" />
+            </items>
+          </Menu>
+            <Menu mnemonicParsing="false" text="Report">
+              <items>
+                <MenuItem fx:id="reportButton" mnemonicParsing="false" onAction="#reportButtonListener" text="Report" />
+              </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Sort">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#sortStudentsButtonListener" text="Students" />
+                  <MenuItem mnemonicParsing="false" onAction="#sortCoursesButtonListener" text="Courses" />
+              </items>
+            </Menu>
+        </menus>
+      </MenuBar>
+      <VBox fx:id="addStudentVBOX" alignment="CENTER" layoutX="129.0" layoutY="91.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="ADD A NEW STUDENT" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="First Name: " />
+                  <TextField fx:id="addStudentFirstNameTextField" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="Last Name: " />
+                  <TextField fx:id="addStudentLastNameTextField" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+               <children>
+                  <Label text="Address: " />
+                  <TextField fx:id="addStudentAddressTextField" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="52.0">
+               <children>
+                  <Label text="City: " />
+                  <TextField fx:id="addStudentCityTextField" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+               <children>
+                  <Label text="State: " />
+                  <TextField fx:id="addStudentStateTextField" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Button fx:id="createStudentButton" mnemonicParsing="false" onAction="#createStudentButtonListener" text="Create Student" />
+                  <Button fx:id="cancelButton" mnemonicParsing="false" text="Cancel" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="postAddStudentVBOX" alignment="CENTER" layoutX="143.0" layoutY="57.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="Student DETAILS" />
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="Student ID: " />
+                  <Label fx:id="postAddStudentID" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="First Name: " />
+                  <Label fx:id="postAddStudentFirstName" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="Last Name: " />
+                  <Label fx:id="postAddStudentLastName" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+               <children>
+                  <Label text="Address: " />
+                  <Label fx:id="postAddStudentAddress" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="52.0">
+               <children>
+                  <Label text="City: " />
+                  <Label fx:id="postAddStudentCity" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+               <children>
+                  <Label text="State: " />
+                  <Label fx:id="postAddStudentState" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Button fx:id="addNewStudentButton" mnemonicParsing="false" onAction="#addStudentButtonListener" text="Add new Student" />
+                  <Button fx:id="postAddStudentEditButton" mnemonicParsing="false" onAction="#postAddStudentEditButtonListener" text="Edit" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="editStudentVBOX" alignment="CENTER" layoutX="139.0" layoutY="69.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="EDIT A STUDENT" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="First Name: " />
+                  <TextField fx:id="editStudentFirstName" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="Last Name: " />
+                  <TextField fx:id="editStudentLastName" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+               <children>
+                  <Label text="Address: " />
+                  <TextField fx:id="editStudentAddress" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="52.0">
+               <children>
+                  <Label text="City: " />
+                  <TextField fx:id="editStudentCity" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+               <children>
+                  <Label text="State: " />
+                  <TextField fx:id="editStudentState" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Button fx:id="saveChangesButton" mnemonicParsing="false" onAction="#editStudentSaveChangesButtonListener" text="Save Changes" />
+                  <Button fx:id="editCancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+                  <Button fx:id="deleteStudentButton" mnemonicParsing="false" onAction="#deleteStudentButtonListener" text="Delete Student" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="displayStudentVBOX" alignment="CENTER" layoutX="153.0" layoutY="67.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="Student DETAILS" />
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="Student ID: " />
+                  <Label fx:id="displayStudentID" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="First Name: " />
+                  <Label fx:id="displayStudentFirstName" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="Last Name: " />
+                  <Label fx:id="displayStudentLastName" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+               <children>
+                  <Label text="Address: " />
+                  <Label fx:id="displayStudentAddress" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="52.0">
+               <children>
+                  <Label text="City: " />
+                  <Label fx:id="displayStudentCity" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+               <children>
+                  <Label text="State: " />
+                  <Label fx:id="displayStudentState" text="Student DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Button fx:id="searchStudentEditButton" mnemonicParsing="false" onAction="#displayStudentEditButtonListener" text="Edit" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="searchStudentVBOX" alignment="CENTER" layoutX="143.0" layoutY="91.0" prefHeight="200.0" prefWidth="306.0" visible="false">
+         <children>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Label text="Pleae enter the Student ID: " />
+                  <TextField fx:id="studentSearchID" />
+               </children>
+            </HBox>
+            <Button fx:id="studentSearchButton" mnemonicParsing="false" onAction="#studentSearchButtonListener" text="Student Search" />
+         </children>
+      </VBox>
+      <VBox fx:id="editCourseVBOX" alignment="CENTER" layoutX="144.0" layoutY="99.0" prefHeight="200.0" prefWidth="314.0" visible="false">
+         <children>
+            <Label text="EDIT A COURSE" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Label text="Course Number: ">
+                     <HBox.margin>
+                        <Insets right="3.0" />
+                     </HBox.margin>
+                  </Label>
+                  <TextField fx:id="editCourseNumber" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Label text="Course Name: ">
+                     <HBox.margin>
+                        <Insets right="10.0" />
+                     </HBox.margin>
+                  </Label>
+                  <TextField fx:id="editCourseName" prefHeight="26.0" prefWidth="149.0" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" onInputMethodTextChanged="#updateInstructorListEditCourseChoiceBox" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Label text="Department: ">
+                     <HBox.margin>
+                        <Insets right="18.0" />
+                     </HBox.margin>
+                  </Label>
+                  <ChoiceBox fx:id="editCourseDepartmentChoiceBox" prefWidth="150.0" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Label text="Instructor: ">
+                     <HBox.margin>
+                        <Insets right="28.0" />
+                     </HBox.margin>
+                  </Label>
+                  <ChoiceBox fx:id="editCourseInstructorChoiceBox" onMouseClicked="#updateInstructorListEditCourseChoiceBox" prefHeight="26.0" prefWidth="150.0" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
+               <children>
+                  <Button fx:id="editCourseSaveChangesButton" mnemonicParsing="false" onAction="#editCourseSaveChangesButton" text="Save Changes" />
+                  <Button fx:id="editCourseCancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+                  <Button fx:id="deleteCourseButton" mnemonicParsing="false" onAction="#deleteCourseButtonListener" text="Delete Course" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="addCourseVBOX" alignment="CENTER" layoutX="164.0" layoutY="109.0" onMouseClicked="#updateInstructorListAddCourseChoiceBox" prefHeight="200.0" prefWidth="244.0" visible="false">
+         <children>
+            <Label text="ADD A NEW COURSE" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Label text="Course Number: ">
+                     <HBox.margin>
+                        <Insets right="3.0" />
+                     </HBox.margin>
+                  </Label>
+                  <TextField fx:id="addCourseNumber" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Label text="Course Name: ">
+                     <HBox.margin>
+                        <Insets right="10.0" />
+                     </HBox.margin>
+                  </Label>
+                  <TextField fx:id="addCourseName" prefHeight="26.0" prefWidth="149.0" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Label text="Department: ">
+                     <HBox.margin>
+                        <Insets right="18.0" />
+                     </HBox.margin>
+                  </Label>
+                  <ChoiceBox fx:id="addCourseDepartmentChoiceBox" onInputMethodTextChanged="#updateInstructorListAddCourseChoiceBox" prefWidth="150.0" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Label text="Instructor: ">
+                     <HBox.margin>
+                        <Insets right="28.0" />
+                     </HBox.margin>
+                  </Label>
+                  <ChoiceBox fx:id="addCourseInstructorChoiceBox" onMouseClicked="#updateInstructorListAddCourseChoiceBox" prefHeight="26.0" prefWidth="150.0" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
+               <children>
+                  <Button fx:id="createCourseButton" mnemonicParsing="false" onAction="#createCourseButtonListener" text="Create Course" />
+                  <Button fx:id="createCourseCancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="postAddCourseVBOX" alignment="CENTER" layoutX="153.0" layoutY="67.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="Course DETAILS">
+               <VBox.margin>
+                  <Insets right="25.0" />
+               </VBox.margin>
+            </Label>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="67.0">
+               <children>
+                  <Label text="Course ID: " />
+                  <Label fx:id="postAddCourseID" text="Course DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="39.0">
+               <children>
+                  <Label text="Course Number:" />
+                  <Label fx:id="postAddCourseNumber" text="Course DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="49.0">
+               <children>
+                  <Label text="Course Name: " />
+                  <Label fx:id="postAddCourseName" text="Course DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+               <children>
+                  <Label text="Course Instructor: " />
+                  <Label fx:id="postAddCourseInstructor" text="Course DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="18.0" prefWidth="257.0" spacing="15.0">
+               <children>
+                  <Label prefHeight="18.0" prefWidth="112.0" text="Course Department: " />
+                  <Label fx:id="postAddCourseDepartment" prefHeight="18.0" prefWidth="95.0" text="Course DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Button fx:id="addNewCourseButton" mnemonicParsing="false" onAction="#addCourseButtonListener" text="Add New Course" />
+                  <Button fx:id="postAddCourseEditButton" mnemonicParsing="false" onAction="#postAddCourseEditButtonListener" text="Edit" />
+               </children>
+               <VBox.margin>
+                  <Insets right="25.0" />
+               </VBox.margin>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="displayCourseVBOX" alignment="CENTER" layoutX="163.0" layoutY="77.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="Course DETAILS">
+               <VBox.margin>
+                  <Insets right="25.0" />
+               </VBox.margin>
+            </Label>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="67.0">
+               <children>
+                  <Label text="Course ID: " />
+                  <Label fx:id="displayCourseID" text="Course DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="39.0">
+               <children>
+                  <Label text="Course Number:" />
+                  <Label fx:id="displayCourseNumber" text="Course DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="49.0">
+               <children>
+                  <Label text="Course Name: " />
+                  <Label fx:id="displayCourseName" text="Course DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+               <children>
+                  <Label text="Course Instructor: " />
+                  <Label fx:id="displayCourseInstructor" text="Course DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="18.0" prefWidth="257.0" spacing="15.0">
+               <children>
+                  <Label prefHeight="18.0" prefWidth="112.0" text="Course Department: " />
+                  <Label fx:id="displayCourseDepartment" prefHeight="18.0" prefWidth="95.0" text="Course DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Button fx:id="displayCourseEditButton" mnemonicParsing="false" onAction="#displayCourseEditButtonListener" text="Edit" />
+               </children>
+               <VBox.margin>
+                  <Insets right="25.0" />
+               </VBox.margin>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="searchCourseVBOX" alignment="CENTER" layoutX="153.0" layoutY="101.0" prefHeight="200.0" prefWidth="306.0" visible="false">
+         <children>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+               <children>
+                  <Label text="Please enter the Course ID: " />
+                  <TextField fx:id="courseSearchID" />
+               </children>
+            </HBox>
+            <Button fx:id="courseSearchButton" mnemonicParsing="false" onAction="#courseSearchButtonListener" text="Course Search" />
+         </children>
+      </VBox>
+      <VBox fx:id="searchStudentCreateEnrollmentVBOX" alignment="CENTER" layoutX="153.0" layoutY="101.0" prefHeight="200.0" prefWidth="306.0" visible="false">
+         <children>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Label text="Pleae enter the Student ID: " />
+                  <TextField fx:id="enrollmentStudentSearchID" />
+               </children>
+            </HBox>
+            <Button fx:id="enrollmentStudentSearchButton" mnemonicParsing="false" onAction="#createEnrollmentStudentSearchButtonListener" text="Student Search" />
+         </children>
+      </VBox>
+      <HBox fx:id="createEnrollmentHBOX" layoutX="84.0" layoutY="108.0" prefHeight="182.0" prefWidth="494.0" spacing="40.0" visible="false">
+         <children>
+            <VBox fx:id="createEnrollmentDisplayStudentVBOX" alignment="CENTER" prefHeight="246.0" prefWidth="244.0" spacing="15.0">
+               <children>
+                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label text="Student ID: " />
+                        <Label fx:id="createEnrollmentDisplayStudentID" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label text="First Name: " />
+                        <Label fx:id="createEnrollmentDisplayStudentFirstName" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label text="Last Name: " />
+                        <Label fx:id="createEnrollmentDisplayStudentLastName" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox prefHeight="18.0" prefWidth="182.0" spacing="20.0">
+                     <children>
+                        <Label prefHeight="18.0" prefWidth="58.0" text="Address: " />
+                        <Label fx:id="createEnrollmentDisplayStudentAddress" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="52.0">
+                     <children>
+                        <Label text="City: " />
+                        <Label fx:id="createEnrollmentDisplayStudentCity" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+                     <children>
+                        <Label text="State: " />
+                        <Label fx:id="createEnrollmentDisplayStudentState" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+               </children>
+            </VBox>
+            <VBox fx:id="createEnrollmentCourseVBOX" alignment="CENTER" prefHeight="182.0" prefWidth="347.0" spacing="15.0">
+               <children>
+                  <Label alignment="CENTER" text="CREATE AN ENROLLMENT" />
+                  <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label text="Course: " />
+                        <ChoiceBox fx:id="createEnrollmentCourseChoiceBox" prefHeight="26.0" prefWidth="113.0">
+                           <HBox.margin>
+                              <Insets left="10.0" />
+                           </HBox.margin>
+                        </ChoiceBox>
+                     </children>
+                     <VBox.margin>
+                        <Insets left="30.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label text="Year: " />
+                        <ChoiceBox fx:id="createEnrollmentYearChoiceBox" prefHeight="26.0" prefWidth="70.0">
+                           <HBox.margin>
+                              <Insets left="25.0" />
+                           </HBox.margin>
+                        </ChoiceBox>
+                     </children>
+                     <VBox.margin>
+                        <Insets left="30.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label alignment="CENTER" text="Semester: " />
+                        <ChoiceBox fx:id="createEnrollmentSemesterChoiceBox" prefHeight="26.0" prefWidth="109.0" />
+                     </children>
+                     <VBox.margin>
+                        <Insets left="30.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Button fx:id="createEnrollmentCreateButton" mnemonicParsing="false" onAction="#createEnrollmentButtonListener" text="Create Enrollment" />
+                        <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+      <VBox fx:id="postAddEnrollmentVBOX" alignment="CENTER" layoutX="163.0" layoutY="77.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="Enrollment DETAILS">
+               <VBox.margin>
+                  <Insets right="25.0" />
+               </VBox.margin>
+            </Label>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+               <children>
+                  <Label text="Enrollment ID: " />
+                  <Label fx:id="postAddEnrollmentEID" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="18.0" prefWidth="284.0" spacing="55.0">
+               <children>
+                  <Label text="Course ID:" />
+                  <Label fx:id="postAddEnrollmentCID" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="47.0">
+               <children>
+                  <Label text="Student ID: " />
+                  <Label fx:id="postAddEnrollmentSID" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="80.0">
+               <children>
+                  <Label text="Year: " />
+                  <Label fx:id="postAddEnrollmentYear" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="55.0">
+               <children>
+                  <Label text="Semester: " />
+                  <Label fx:id="postAddEnrollmentSemester" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="18.0" prefWidth="257.0" spacing="67.0">
+               <children>
+                  <Label prefHeight="18.0" prefWidth="42.0" text="Grade: " />
+                  <Label fx:id="postAddEnrollmentGrade" prefHeight="18.0" prefWidth="109.0" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="26.0" prefWidth="253.0" spacing="15.0">
+               <children>
+                  <Button fx:id="addNewEnrollmentButton" mnemonicParsing="false" onAction="#addEnrollmentButtonListener" text="Add New Enrollment" />
+                  <Button fx:id="postAddEnrollmentEditButton" mnemonicParsing="false" onAction="#postAddEnrollmentEditButtonListener" text="Edit" />
+               </children>
+               <VBox.margin>
+                  <Insets right="25.0" />
+               </VBox.margin>
+            </HBox>
+         </children>
+      </VBox>
+      <HBox fx:id="editEnrollmentHBOX" layoutX="94.0" layoutY="118.0" prefHeight="182.0" prefWidth="494.0" spacing="40.0" visible="false">
+         <children>
+            <VBox fx:id="editEnrollmentStudentVBOX" alignment="CENTER" prefHeight="246.0" prefWidth="244.0" spacing="15.0">
+               <children>
+                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label text="Student ID: " />
+                        <Label fx:id="editEnrollmentDisplayStudentID" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label text="First Name: " />
+                        <Label fx:id="editEnrollmentDisplayStudentFirstName" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label text="Last Name: " />
+                        <Label fx:id="editEnrollmentDisplayStudentLastName" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+                     <children>
+                        <Label text="Address: " />
+                        <Label fx:id="editEnrollmentDisplayStudentAddress" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="52.0">
+                     <children>
+                        <Label text="City: " />
+                        <Label fx:id="editEnrollmentDisplayStudentCity" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+                     <children>
+                        <Label text="State: " />
+                        <Label fx:id="editEnrollmentDisplayStudentState" text="Student DETAILS" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+               </children>
+            </VBox>
+            <VBox fx:id="editEnrollmentCourseVBOX" alignment="CENTER" prefHeight="182.0" prefWidth="347.0" spacing="15.0">
+               <children>
+                  <Label alignment="CENTER" text="EDIT ENROLLMENT" />
+                  <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label text="Course: " />
+                        <ChoiceBox fx:id="editEnrollmentCourseChoiceBox" prefHeight="26.0" prefWidth="113.0">
+                           <HBox.margin>
+                              <Insets left="10.0" />
+                           </HBox.margin>
+                        </ChoiceBox>
+                     </children>
+                     <VBox.margin>
+                        <Insets left="30.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label text="Year: " />
+                        <ChoiceBox fx:id="editEnrollmentYearChoiceBox" prefHeight="26.0" prefWidth="70.0">
+                           <HBox.margin>
+                              <Insets left="25.0" />
+                           </HBox.margin>
+                        </ChoiceBox>
+                     </children>
+                     <VBox.margin>
+                        <Insets left="30.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Label alignment="CENTER" text="Semester: " />
+                        <ChoiceBox fx:id="editEnrollmentSemesterChoiceBox" prefHeight="26.0" prefWidth="109.0" />
+                     </children>
+                     <VBox.margin>
+                        <Insets left="30.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <Button fx:id="editEnrollmentSaveChangesButton" mnemonicParsing="false" onAction="#editEnrollmentSaveChangesButtonListener" text="Save Changes" />
+                        <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+      <VBox fx:id="searchEnrollmentGradeManagementVBOX" layoutX="144.0" layoutY="95.0" prefHeight="200.0" prefWidth="314.0" visible="false">
+         <children>
+            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="Enter Course ID: " />
+                  <TextField fx:id="gradeManagementCourseID" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Label text="Enter Student ID: " />
+                  <TextField fx:id="gradeManagementStudentID" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="80.0">
+               <children>
+                  <Label text="Year: " />
+                  <ChoiceBox fx:id="gradeManagementYear" prefHeight="26.0" prefWidth="83.0" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="55.0">
+               <children>
+                  <Label text="Semester: " />
+                  <ChoiceBox fx:id="gradeManagementSemester" prefHeight="26.0" prefWidth="106.0" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
+               <children>
+                  <Button fx:id="gradeManagementSearchButton" mnemonicParsing="false" onAction="#gradeManagementSearchButtonListener" text="Search" />
+                  <Button fx:id="searchEnrollmentCancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="displayEnrollmentVBOX" alignment="CENTER" layoutX="173.0" layoutY="87.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="Enrollment DETAILS">
+               <VBox.margin>
+                  <Insets right="25.0" />
+               </VBox.margin>
+            </Label>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+               <children>
+                  <Label text="Enrollment ID: " />
+                  <Label fx:id="displayEnrollmentEID" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="18.0" prefWidth="284.0" spacing="55.0">
+               <children>
+                  <Label text="Course ID:" />
+                  <Label fx:id="displayEnrollmentCID" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="47.0">
+               <children>
+                  <Label text="Student ID: " />
+                  <Label fx:id="displayEnrollmentSID" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="80.0">
+               <children>
+                  <Label text="Year: " />
+                  <Label fx:id="displayEnrollmentYear" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="55.0">
+               <children>
+                  <Label text="Semester: " />
+                  <Label fx:id="displayEnrollmentSemester" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="18.0" prefWidth="257.0" spacing="67.0">
+               <children>
+                  <Label prefHeight="18.0" prefWidth="42.0" text="Grade: " />
+                  <Label fx:id="displayEnrollmentGrade" prefHeight="18.0" prefWidth="109.0" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="26.0" prefWidth="253.0" spacing="15.0">
+               <children>
+                  <Button fx:id="displayEnrollmentEditButton" mnemonicParsing="false" onAction="#displayEnrollmentEditButtonListener" text="Edit" />
+               </children>
+               <VBox.margin>
+                  <Insets right="25.0" />
+               </VBox.margin>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="gradeManagementEditVBOX" alignment="CENTER" layoutX="153.0" layoutY="67.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="Enrollment DETAILS">
+               <VBox.margin>
+                  <Insets right="25.0" />
+               </VBox.margin>
+            </Label>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+               <children>
+                  <Label text="Enrollment ID: " />
+                  <Label fx:id="gradeManagementDisplayEID" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="18.0" prefWidth="284.0" spacing="55.0">
+               <children>
+                  <Label text="Course ID:" />
+                  <Label fx:id="gradeManagementDisplayCID" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="47.0">
+               <children>
+                  <Label text="Student ID: " />
+                  <Label fx:id="gradeManagementDisplaySID" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="80.0">
+               <children>
+                  <Label text="Year: " />
+                  <Label fx:id="gradeManagementDisplayYear" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="55.0">
+               <children>
+                  <Label text="Semester: " />
+                  <Label fx:id="gradeManagementDisplaySemester" text="Enrollment DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="18.0" prefWidth="257.0" spacing="67.0">
+               <children>
+                  <Label prefHeight="18.0" prefWidth="42.0" text="Grade: " />
+                  <ChoiceBox fx:id="gradeManagementGradeChoiceBox" prefHeight="26.0" prefWidth="75.0" />
+               </children>
+               <VBox.margin>
+                  <Insets left="35.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="26.0" prefWidth="306.0" spacing="15.0">
+               <children>
+                  <Button fx:id="gradeManagementSaveChangesButton" mnemonicParsing="false" onAction="#gradeManagementSaveChangesButtonListener" text="Save Changes" />
+                  <Label fx:id="gradeManagementSaveIndicator" />
+               </children>
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="searchEnrollmentVBOX" alignment="CENTER" layoutX="163.0" layoutY="111.0" prefHeight="200.0" prefWidth="306.0" visible="false">
+         <children>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+               <children>
+                  <Label text="Enter the Enrollment ID: " />
+                  <TextField fx:id="enrollmentSearchID" />
+               </children>
+            </HBox>
+            <Button fx:id="enrollmentSearchButton" mnemonicParsing="false" onAction="#enrollmentSearchButtonListener" text="Enrollment Search" />
+         </children>
+      </VBox>
+      <VBox fx:id="searchReportVBOX" alignment="CENTER" layoutX="170.0" layoutY="90.0" prefHeight="200.0" prefWidth="256.0" visible="false">
+         <children>
+            <HBox alignment="CENTER" prefHeight="73.0" prefWidth="256.0" spacing="20.0">
+               <children>
+                  <Label text="Course: " />
+                  <ChoiceBox fx:id="searchReportCourseChoiceBox" prefHeight="26.0" prefWidth="91.0" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="56.0" prefWidth="256.0" spacing="20.0">
+               <children>
+                  <Label text="Year: " />
+                  <ChoiceBox fx:id="searchReportYearChoiceBox" prefHeight="26.0" prefWidth="62.0" />
+               </children>
+            </HBox>
+            <Button fx:id="reportSearchButton" alignment="CENTER" mnemonicParsing="false" onAction="#reportSearchButtonListener" text="Search">
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </Button>
+         </children>
+      </VBox>
+      <VBox fx:id="displayReportVBOX" alignment="CENTER" layoutX="138.0" layoutY="67.0" prefHeight="255.0" prefWidth="335.0" visible="false">
+         <children>
+            <Label text="Report" />
+            <Label fx:id="ReportClassName" text="ENROLLMENT INFO" />
+            <ListView fx:id="listOfStudentInfo" prefHeight="234.0" prefWidth="306.0" />
+            <Button mnemonicParsing="false" onAction="#cancelButtonListener" text="Exit" />
+         </children>
+      </VBox>
+      <VBox fx:id="addDepartmentVBOX" alignment="CENTER" layoutX="139.0" layoutY="101.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="ADD A NEW DEPARTMENT" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+               <children>
+                  <Label text="Department Name: " />
+                  <TextField fx:id="addDepartmentName" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Button fx:id="addDepartmentButton" mnemonicParsing="false" onAction="#createDepartmentButtonListener" text="Create Department" />
+                  <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="displayDepartmentVBOX" alignment="CENTER" layoutX="139.0" layoutY="97.0" prefHeight="213.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label prefHeight="43.0" prefWidth="111.0" text="Department DETAILS" />
+            <HBox prefHeight="54.0" prefWidth="244.0" spacing="15.0">
+               <children>
+                  <Label text="Department ID:" />
+                  <Label fx:id="displayDepartmentID" text="Department DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="45.0" prefWidth="244.0" spacing="46.0">
+               <children>
+                  <Label text="Name: " />
+                  <Label fx:id="displayDepartmentName" text="Department DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="57.0" prefWidth="314.0" spacing="15.0">
+               <children>
+                  <Button fx:id="postAddDepartmentEditButton" mnemonicParsing="false" onAction="#displayDepartmentEditButtonListener" text="Edit" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="postAddDepartmentVBOX" alignment="CENTER" layoutX="149.0" layoutY="107.0" prefHeight="213.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label prefHeight="51.0" prefWidth="111.0" text="Department DETAILS" />
+            <HBox prefHeight="54.0" prefWidth="244.0" spacing="15.0">
+               <children>
+                  <Label text="Department ID:" />
+                  <Label fx:id="postAddDepartmentID" text="Department DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="45.0" prefWidth="244.0" spacing="46.0">
+               <children>
+                  <Label text="Name: " />
+                  <Label fx:id="postAddDepartmentName" text="Department DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="57.0" prefWidth="314.0" spacing="15.0">
+               <children>
+                  <Button fx:id="addNewDepartmentButton" mnemonicParsing="false" onAction="#addDepartmentButtonListener" text="Add New Department" />
+                  <Button fx:id="postAddDepartmentEditButton" mnemonicParsing="false" onAction="#postAddDepartmentEditButtonListener" text="Edit" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="editDepartmentVBOX" alignment="CENTER" layoutX="139.0" layoutY="72.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="Edit DEPARTMENT" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+               <children>
+                  <Label text="Department Name: " />
+                  <TextField fx:id="editDepartmentName" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Button fx:id="saveChangesButton" mnemonicParsing="false" onAction="#editDepartmentSaveChangesButtonListener" text="Save Changes" />
+                  <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="searchDepartmentVBOX" alignment="CENTER" layoutX="149.0" layoutY="82.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="Search DEPARTMENT" />
+            <HBox alignment="CENTER" prefHeight="79.0" prefWidth="314.0" spacing="46.0">
+               <children>
+                  <Label text="Department ID: " />
+                  <TextField fx:id="searchDepartmentTextField" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="58.0" prefWidth="314.0" spacing="15.0">
+               <children>
+                  <Button fx:id="searchDepartmentButton" mnemonicParsing="false" onAction="#departmentSearchButtonListener" text="Search" />
+                  <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="addInstructorVBOX" alignment="CENTER" layoutX="129.0" layoutY="86.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="ADD A NEW INSTRUCTOR" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+               <children>
+                  <Label text="Department: " />
+                  <ChoiceBox fx:id="addInstructorDepartmentChoiceBox" prefWidth="150.0" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+               <children>
+                  <Label text="Instructor Name: " />
+                  <TextField fx:id="addInstructorName" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Button fx:id="addInstructorButton" mnemonicParsing="false" onAction="#createInstructorButtonListener" text="Create Instructor" />
+                  <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="searchInstructorVBOX" alignment="CENTER" layoutX="149.0" layoutY="78.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="Search INSTRUCTOR" />
+            <HBox alignment="CENTER" prefHeight="83.0" prefWidth="314.0" spacing="46.0">
+               <children>
+                  <Label text="Instructor ID: " />
+                  <TextField fx:id="searchInstructorTextField" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="58.0" prefWidth="314.0" spacing="15.0">
+               <children>
+                  <Button fx:id="searchInstructorButton" mnemonicParsing="false" onAction="#instructorSearchButtonListener" text="Search" />
+                  <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="postAddInstructorVBOX" alignment="CENTER" layoutX="138.0" layoutY="104.0" prefHeight="213.0" prefWidth="335.0" spacing="15.0" visible="false">
+         <children>
+            <Label prefHeight="51.0" prefWidth="111.0" text="Instructor DETAILS" />
+            <HBox prefHeight="17.0" prefWidth="251.0" spacing="15.0">
+               <children>
+                  <Label text="Instructor ID:" />
+                  <Label fx:id="postAddInstructorID" text="Instructor DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="20.0" prefWidth="248.0" spacing="15.0">
+               <children>
+                  <Label text="Department Name:" />
+                  <Label fx:id="postAddInstructorDepName" text="Instructor DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="45.0" prefWidth="244.0" spacing="46.0">
+               <children>
+                  <Label text="Name: " />
+                  <Label fx:id="postAddInstructorName" text="Instructor DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="57.0" prefWidth="314.0" spacing="15.0">
+               <children>
+                  <Button fx:id="addNewInstructorButton" mnemonicParsing="false" onAction="#addInstructorButtonListener" text="Add New Instructor" />
+                  <Button fx:id="postAddNewInstructorEditButton" mnemonicParsing="false" onAction="#postAddInstructorEditButtonListener" text="Edit" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="displayInstructorVBOX" alignment="CENTER" layoutX="148.0" layoutY="114.0" prefHeight="213.0" prefWidth="335.0" spacing="15.0" visible="false">
+         <children>
+            <Label prefHeight="51.0" prefWidth="111.0" text="Instructor DETAILS" />
+            <HBox prefHeight="17.0" prefWidth="251.0" spacing="15.0">
+               <children>
+                  <Label text="Instructor ID:" />
+                  <Label fx:id="displayInstructorID" text="Instructor DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="20.0" prefWidth="248.0" spacing="15.0">
+               <children>
+                  <Label text="Department Name:" />
+                  <Label fx:id="displayInstructorDepName" text="Instructor DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="45.0" prefWidth="244.0" spacing="46.0">
+               <children>
+                  <Label text="Name: " />
+                  <Label fx:id="displayInstructorName" text="Instructor DETAILS" />
+               </children>
+               <VBox.margin>
+                  <Insets left="70.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="57.0" prefWidth="314.0" spacing="15.0">
+               <children>
+                  <Button fx:id="displayInstructorEditButton" mnemonicParsing="false" onAction="#displayInstructorEditButtonListener" text="Edit" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="editInstructorVBOX" alignment="CENTER" layoutX="144.0" layoutY="78.0" prefHeight="246.0" prefWidth="314.0" spacing="15.0" visible="false">
+         <children>
+            <Label text="Edit INSTRUCTOR" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+               <children>
+                  <Label text="Department: " />
+                  <ChoiceBox fx:id="editInstructorDepartmentChoiceBox" prefWidth="150.0" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="46.0">
+               <children>
+                  <Label text="Instructor Name: " />
+                  <TextField fx:id="editInstructorName" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
+               <children>
+                  <Button fx:id="editInstructorSaveChangesButton" mnemonicParsing="false" onAction="#editInstructorSaveChangesButtonListener" text="Save Changes" />
+                  <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="sortStudentsVBOX" alignment="CENTER" layoutX="148.0" layoutY="77.0" prefHeight="255.0" prefWidth="335.0" visible="false">
+         <children>
+            <Label text="Students" />
+            <ListView fx:id="listOfStudents" prefHeight="234.0" prefWidth="306.0" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+               <children>
+                  <Button fx:id="SortStudentsButton" mnemonicParsing="false" onAction="#studentsSortButtonListener" text="Sort" />
+                  <Button mnemonicParsing="false" onAction="#cancelButtonListener" text="Exit" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="sortCoursesVBOX" alignment="CENTER" layoutX="142.0" layoutY="72.0" prefHeight="255.0" prefWidth="335.0" visible="false">
+         <children>
+            <Label text="Courses" />
+            <ListView fx:id="listOfCourses" prefHeight="234.0" prefWidth="306.0" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+               <children>
+                  <Button fx:id="SortCoursesButton" mnemonicParsing="false" onAction="#coursesSortButtonListener" text="Sort" />
+                  <Button mnemonicParsing="false" onAction="#cancelButtonListener" text="Exit" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

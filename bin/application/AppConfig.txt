@@ -1,0 +1,3 @@
+jdbc:mysql://localhost:3306/cs136finaldb
+ShadyBarrios
+ShadySagb@SQL62196
