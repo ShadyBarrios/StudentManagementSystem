@@ -227,7 +227,7 @@ public class MainController{
 		else
 			System.out.println("no pass");
 		
-		TruncateDB(false);
+		
 		
 		fileScanner.close();
 		
@@ -238,12 +238,7 @@ public class MainController{
 		InstructorFile = new File("InstructorFile.dat");
 		HighestFile = new File("HighestFile.dat");
 		
-		SetUpStudentLinkedList(true);
-		SetUpCourseLinkedList(true);
-		SetUpEnrollmentLinkedList(true);
-		SetUpDepartmentList(true);
-		SetUpInstructorList(true);
-		SetUpHighestList(true);
+		TruncateDB(true);
 	
 //		addCourseInstructorChoiceBox.getItems().removeAll(addCourseInstructorChoiceBox.getItems());
 //		addCourseInstructorChoiceBox.getItems().addAll("Kim", "Jones", "Java", "Pete", "Scott");
@@ -254,28 +249,64 @@ public class MainController{
 		MenuLabel.setVisible(true);
 	}
 	
-	private void TruncateDB(boolean doTrucate) {
+	private void TruncateDB(boolean doTrucate) throws ClassNotFoundException, IOException {
+		SetUpHighestList(doTrucate);
 		if(doTrucate) {
 			try {
 				Connection conn = DriverManager.getConnection(url, user, pass);
 				Statement stmnt = conn.createStatement();
 				int rows = 0;
-				String[] wipes = {"DELETE * FROM students", "DELETE * FROM courses", 
-						"DELETE * FROM enrollments", "DELETE * FROM instructors",
-						"DELETE * FROM departments"};
+				String[] wipes = {"DELETE FROM students", "DELETE FROM courses", 
+						"DELETE FROM enrollments", "DELETE FROM instructors",
+						"DELETE FROM departments"};
 				for(String wipe : wipes)
 					rows += stmnt.executeUpdate(wipe);
 				
-				System.out.printf("%i total rows deleted\n", rows);
+				System.out.println(rows + " total rows deleted\n");
 				
 				stmnt.close();
 				conn.close();
+				
 				return;
 			} catch (SQLException e) {
 				System.out.println("Exception: " + e);
 			}
 		}
 		System.out.println("Did not truncate");
+	}
+	
+	private boolean IdIsInDB(int id, String table) {
+		try {
+			Connection conn = DriverManager.getConnection(url, user, pass);
+			Statement stmnt = conn.createStatement();
+			String type = table.equals("enrollment") ? "EID" : "ID";
+			String query = "SELECT * FROM " + table + " WHERE " + type + " = " + id; 
+			ResultSet set = stmnt.executeQuery(query);
+			conn.close();
+			stmnt.close();
+			return set.next();
+		}
+		catch(Exception e) {
+			System.out.println("Exception: " + e.getMessage());
+			return false;
+		}
+	}
+	
+	private int GetHighestID(String objType) {
+		try {
+			Connection conn = DriverManager.getConnection(url, user, pass);
+			Statement stmnt = conn.createStatement();
+			String ID = objType.equals("enrollments") ? "EID" : "ID";
+			String query = "SELECT MAX(" + ID + ") FROM " + objType;
+			ResultSet set = stmnt.executeQuery(query);
+			conn.close();
+			stmnt.close();
+			return set.getInt(ID);
+		}
+		catch(Exception e) {
+			System.out.println("Exception: " + e.getMessage());
+			return 0;
+		}
 	}
 	
 	private boolean IsEmpty(String type) {
@@ -293,6 +324,51 @@ public class MainController{
 		}
 	}
 	
+	private ResultSet GetHighestFrom(String table) throws SQLException{
+		try {
+			Connection conn = DriverManager.getConnection(url, user, pass);
+			Statement stmnt = conn.createStatement();
+			String type = table.equals("enrollments") ? "EID" : "ID";
+			ResultSet set = stmnt.executeQuery("SELECT MAX(" + type + ") FROM " + table);
+			set.next();
+			int highest = set.getInt(1);
+			set = stmnt.executeQuery("SELECT * FROM " + table + " WHERE " + type + " = " + highest);
+			Object obj = GenerateObject(table, set);
+			conn.close();
+			stmnt.close();
+			System.out.println(set.isClosed());
+			return set;
+		}
+		catch(Exception e) {
+			System.out.println("Exception: " + e.getMessage());
+			return null;
+		}
+	}
+	
+	private Object GenerateObject(String table, ResultSet set) throws SQLException {
+		set.next();
+		if(table.equals("students"))
+			return new Student(set.getInt("ID"), set.getString("FirstName"), set.getString("LastName"), set.getString("Address"), set.getString("City"), set.getString("State"));
+		else if(table.equals("courses"))
+			return new Course(set.getInt("ID"), set.getString("Num"), set.getString("Name"), set.getInt("InstructorID"), set.getInt("DepartmentID"));
+	}
+	
+	private ResultSet GetFrom(String table, int id) throws SQLException{
+		try {
+			Connection conn = DriverManager.getConnection(url, user, pass);
+			Statement stmnt = conn.createStatement();
+			String type = table.equals("enrollments") ? "EID" : "ID";
+			ResultSet set = stmnt.executeQuery(("SELECT * FROM " + table + " WHERE " + type + " = " + id));
+			set.next();
+			conn.close();
+			return set;
+		}
+		catch(Exception e) {
+			System.out.println("Exception: " + e.getMessage());
+			return null;
+		}
+	}
+	
 	private boolean AddToDatabase(Object obj) throws SQLException {
 		Connection conn = DriverManager.getConnection(url, user, pass);
 		Statement stmnt = conn.createStatement();
@@ -301,13 +377,64 @@ public class MainController{
 			Student student = (Student)obj;
 			String update = "INSERT INTO students (ID, FirstName, LastName, Address, City, State) VALUES (" + student.getId()
 						+ ", '" + student.getFirstName() + "', '" + student.getLastName() + "', '" + student.getAddress()
-						+ ", '" + student.getCity() + "')";
+						+ "', '" + student.getCity() + "', '" + student.getState() + "')";
 			stmnt.executeUpdate(update);
 			returner = true;
 		}
 		else if(obj instanceof Course) {
 			Course course = (Course)obj;
 			String update = "INSERT INTO courses (ID, Num, Name, InstructorID, DepartmentID) VALUES (" + course.getId() 
+					+ ", '" + course.getNum() + "', '" + course.getName() + "', '" + course.getInstruct() + "', '" 
+					+ course.getDepartment() + "')";
+			stmnt.executeUpdate(update);
+			returner = true;
+		}
+		else if(obj instanceof Enrollment) {
+			Enrollment enrollment = (Enrollment)obj;
+			String update = "INSERT INTO enrollments (EID, SID, CID, Year, Semester, Grade) VALUES (" + enrollment.getEnrollmentId()
+			+ ", " + enrollment.getStudentId() + ", " + enrollment.getCourseId() + ", " + enrollment.getYear() + ", '" 
+			+ enrollment.getSemester() + "', '" + enrollment.getGrade() + "')";
+			stmnt.executeUpdate(update);
+			returner = true;
+		}
+		else if(obj instanceof Department) {
+			Department department = (Department)obj;
+			String update = "INSERT INTO departments (ID, Name) VALUES (" + department.getId() + ", '" + department.getName() + "')";
+			stmnt.executeUpdate(update);
+			returner = true;
+		}
+		else if(obj instanceof Instructor) {
+			Instructor instructor = (Instructor)obj;
+			String update = "INSERT INTO instructors (ID, Name, DepID) VALUES (" + instructor.getId() + ", '" + 
+			instructor.getName() + "', '" + instructor.getDepName() + "')";
+			stmnt.executeUpdate(update);
+			returner = true;
+		}
+		else
+			returner = false;
+		conn.close();
+		stmnt.close();
+		return returner;
+	}
+	
+	/*
+	 * NEEEDDDD TOOO FINISH HEREREERER
+	 */
+	private boolean EditDatabase(Object obj) throws SQLException{
+		Connection conn = DriverManager.getConnection(url, user, pass);
+		Statement stmnt = conn.createStatement();
+		boolean returner;
+		if(obj instanceof Student) {
+			Student student = (Student)obj;
+			String update = "UPDATE students SET FirstName = '" + student.getFirstName() + "', "
+					+ "LastName = '" + student.getLastName() + "', Address = '" + student.getAddress() + "', " 
+					+ "City = '" + student.getCity() + "', State = '" + student.getState() + "' WHERE ID = " + student.getId();
+			stmnt.executeUpdate(update);
+			returner = true;
+		}
+		else if(obj instanceof Course) {
+			Course course = (Course)obj;
+			String update = "UPDATE courses (ID, Num, Name, InstructorID, DepartmentID) VALUES (" + course.getId() 
 					+ ", '" + course.getNum() + "', '" + course.getName() + "', '" + course.getInstruct() + "', '" 
 					+ course.getDepartment() + "')";
 			stmnt.executeUpdate(update);
@@ -520,8 +647,8 @@ public class MainController{
 		ObjectHighestOutput.close();
 	}
 	
-	private static void SetUpHighestList(boolean doNotTruncate) throws IOException, ClassNotFoundException{
-		if(HighestFile.length() > 10 && doNotTruncate)
+	private static void SetUpHighestList(boolean doTruncate) throws IOException, ClassNotFoundException{
+		if(HighestFile.length() > 10 && !doTruncate)
 			ReadFromHighestFile();
 		else
 			HighestList = new Highest();
@@ -545,10 +672,19 @@ public class MainController{
 	// will first remove from linked list, then all enrollments containing the student id
 	// ids are updated after procedure
 	private static void DeleteStudentFromDatabase(int stuID) throws IOException {
-		Student remove = new Student(stuID);
-		StudentLinkedList.remove(StudentLinkedList.getIndex(remove, true));
-		DeleteAllEnrollmentsWithStudentInstance(stuID);
-		WriteToStudentFile(); 
+		try{
+			Connection conn = DriverManager.getConnection(url, user, pass);
+			Statement stmnt = conn.createStatement();
+			String deleteQuery = "DELETE * FROM students WHERE SID = " + stuID;
+			stmnt.executeUpdate(deleteQuery);
+			deleteQuery = "DELETE * FROM enrollments WHERE SID = " + stuID;
+			stmnt.executeUpdate(deleteQuery);
+			conn.close();
+			stmnt.close();
+		}
+		catch(Exception e) {
+			System.out.println("Exception: " + e.getMessage());
+		}
 		// enrollmentfile and list updated in deleteall...
 	}
 	// same as method above
@@ -556,7 +692,9 @@ public class MainController{
 		try{
 			Connection conn = DriverManager.getConnection(url, user, pass);
 			Statement stmnt = conn.createStatement();
-			String deleteQuery = "DELETE * FROM courses WHERE CID == " + corID;
+			String deleteQuery = "DELETE * FROM courses WHERE ID = " + corID;
+			stmnt.executeUpdate(deleteQuery);
+			deleteQuery = "DELETE * FROM enrollments WHERE CID = " + corID;
 			stmnt.executeUpdate(deleteQuery);
 			conn.close();
 			stmnt.close();
@@ -575,7 +713,7 @@ public class MainController{
 		try{
 			Connection conn = DriverManager.getConnection(url, user, pass);
 			Statement stmnt = conn.createStatement();
-			String deleteQuery = "DELETE * FROM enrollments WHERE SID == " + stuID;
+			String deleteQuery = "DELETE * FROM enrollments WHERE SID = " + stuID;
 			stmnt.executeUpdate(deleteQuery);
 			conn.close();
 			stmnt.close();
@@ -590,7 +728,7 @@ public class MainController{
 		try{
 			Connection conn = DriverManager.getConnection(url, user, pass);
 			Statement stmnt = conn.createStatement();
-			String deleteQuery = "DELETE * FROM enrollments WHERE CID == " + corID;
+			String deleteQuery = "DELETE * FROM enrollments WHERE CID = " + corID;
 			stmnt.executeUpdate(deleteQuery);
 			conn.close();
 			stmnt.close();
@@ -845,7 +983,7 @@ public class MainController{
 		// if list is empty, id is 1 (first), else its the last id + 1
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// int id = (StudentLinkedList.isEmpty()) ? 1 : getHighestStudentID() + 1;
-		int id = (StudentLinkedList.isEmpty() || HighestList.getSID() != 0) ? HighestList.getSID() + 1 : 1;
+		int id = (IsEmpty("students") || HighestList.getSID() != 0) ? HighestList.getSID() + 1 : 1;
 		Student student = new Student(id, firstName, lastName, address, city, state);
 		HighestList.setSID(student.getId());
 		UpdateHighestFile();
@@ -855,7 +993,7 @@ public class MainController{
 		postAddStudent();
 	}
 	
-	public void studentSearchButtonListener() throws IOException{
+	public void studentSearchButtonListener() throws  SQLException, IOException{
 		try {
 			searchStudentRequestedID = Integer.parseInt(studentSearchID.getText());
 		}
@@ -863,11 +1001,7 @@ public class MainController{
 			ErrorMessage("Invalid Search, IDs are numerical");
 		}
 		
-		boolean isInList = false;
-		for(int i = 0; i < StudentLinkedList.size(); i++)
-			if(searchStudentRequestedID == StudentLinkedList.get(i).getId()) isInList = true;
-		
-		if(isInList){
+		if(IdIsInDB(searchStudentRequestedID, "students")){
 			studentJustSearched = true;
 			displaySearchedStudent(searchStudentRequestedID);
 		}
@@ -882,19 +1016,21 @@ public class MainController{
 		MenuLabel.setText(error);
 	}
 	
-	private void postAddStudent() throws IOException{
+	private void postAddStudent() throws SQLException{
 		LOG("Post add student");
 		
 		makeAllInvisible();
 		postAddStudentVBOX.setVisible(true);
 		
-		Student student = StudentLinkedList.getLast();
-		postAddStudentID.setText(String.valueOf(student.getId()));
-		postAddStudentFirstName.setText(student.getFirstName());
-		postAddStudentLastName.setText(student.getLastName());
-		postAddStudentAddress.setText(student.getAddress());
-		postAddStudentCity.setText(student.getCity());
-		postAddStudentState.setText(student.getState());
+		ResultSet set = GetHighestFrom("students");
+		System.out.println(set.isClosed());
+		set.next();	
+		postAddStudentID.setText(set.getString("ID"));
+		postAddStudentFirstName.setText(set.getString("FirstName"));
+		postAddStudentLastName.setText(set.getString("LastName"));
+		postAddStudentAddress.setText(set.getString("Address"));
+		postAddStudentCity.setText(set.getString("City"));
+		postAddStudentState.setText(set.getString("State"));
 	}
 	
 	private void wipeStudentFormInfo() {
@@ -905,19 +1041,20 @@ public class MainController{
 		addStudentStateTextField.setText("");
 	}
 	
-	public void postAddStudentEditButtonListener() throws IOException{
+	public void postAddStudentEditButtonListener() throws SQLException{
 		makeAllInvisible();
 		editStudentVBOX.setVisible(true);
-		studentRecordNumberEditing = StudentLinkedList.getLast().getId();
-		Student student = StudentLinkedList.getLast();
-		editStudentFirstName.setText(student.getFirstName());
-		editStudentLastName.setText(student.getLastName());
-		editStudentAddress.setText(student.getAddress());
-		editStudentCity.setText(student.getCity());
-		editStudentState.setText(student.getState());
+		studentRecordNumberEditing = GetHighestID("students");
+		ResultSet set = GetHighestFrom("students");
+		set.next();	
+		editStudentFirstName.setText(set.getString("FirstName"));
+		editStudentLastName.setText(set.getString("LastName"));
+		editStudentAddress.setText(set.getString("Address"));
+		editStudentCity.setText(set.getString("City"));
+		editStudentState.setText(set.getString("State"));
 	}
 	
-	public void editStudentSaveChangesButtonListener() throws IOException{
+	public void editStudentSaveChangesButtonListener() throws IOException, SQLException{
 		String firstName = editStudentFirstName.getText();
 		String lastName = editStudentLastName.getText();
 		String address = editStudentAddress.getText();
@@ -926,60 +1063,51 @@ public class MainController{
 		
 		Student student = new Student(studentRecordNumberEditing, firstName, lastName, address,city,state);
 		
-		StudentLinkedList.get(student, true).copy(student);
-		WriteToStudentFile();
+		EditDatabase(student);
 		displaySearchedStudent(studentRecordNumberEditing);
 	}
 	
-	private void displaySearchedStudent(int recordNumber) throws IOException{
-		Student search = new Student(recordNumber);
-		Student student = StudentLinkedList.get(search, true);
+	private void displaySearchedStudent(int recordNumber) throws IOException, SQLException{
+		ResultSet set = GetFrom("students", recordNumber);
 		
 		makeAllInvisible();
 		displayStudentVBOX.setVisible(true);
 		
-		displayStudentID.setText(String.valueOf(student.getId()));
-		displayStudentFirstName.setText(student.getFirstName());
-		displayStudentLastName.setText(student.getLastName());
-		displayStudentAddress.setText(student.getAddress());
-		displayStudentCity.setText(student.getCity());
-		displayStudentState.setText(student.getState());
+		set.next();
+		displayStudentID.setText(set.getString("ID"));
+		displayStudentFirstName.setText(set.getString("FirstName"));
+		displayStudentLastName.setText(set.getString("LastName"));
+		displayStudentAddress.setText(set.getString("Address"));
+		displayStudentCity.setText(set.getString("City"));
+		displayStudentState.setText(set.getString("State"));
 	}
 	
-	public void displayStudentEditButtonListener() throws IOException{
+	public void displayStudentEditButtonListener() throws SQLException{
 		makeAllInvisible();
 		editStudentVBOX.setVisible(true);
 
 		System.out.println(studentJustSearched + " " + studentRecordNumberEditing + " " + searchStudentRequestedID);
 		
 		studentRecordNumberEditing = (searchStudentRequestedID == 0 || !studentJustSearched) 
-									? StudentLinkedList.getLast().getId()
+									? GetHighestID("students")
 									: searchStudentRequestedID;
 		
 		System.out.println(studentJustSearched + " " + studentRecordNumberEditing + " " + searchStudentRequestedID);
 		
-		Student search = new Student(studentRecordNumberEditing);
-		Student student = StudentLinkedList.get(search, true);
+		ResultSet set = GetFrom("students", studentRecordNumberEditing);
 		
-		editStudentFirstName.setText(student.getFirstName());
-		editStudentLastName.setText(student.getLastName());
-		editStudentAddress.setText(student.getAddress());
-		editStudentCity.setText(student.getCity());
-		editStudentState.setText(student.getState());
+		set.next();
+		editStudentFirstName.setText(set.getString("FirstName"));
+		editStudentLastName.setText(set.getString("LastName"));
+		editStudentAddress.setText(set.getString("Address"));
+		editStudentCity.setText(set.getString("City"));
+		editStudentState.setText(set.getString("State"));
 	}
 	
 	public void deleteStudentButtonListener() throws IOException {
 		int id = studentRecordNumberEditing;
 		DeleteStudentFromDatabase(id);
 		ErrorMessage("Student Deleted");
-	}
-	
-	private int getHighestStudentID() {
-		int[] ids = new int[StudentLinkedList.size()];
-		for(int i = 0; i < StudentLinkedList.size(); i++)
-			ids[i] = StudentLinkedList.get(i).getId();
-		Arrays.sort(ids);
-		return ids[ids.length - 1];
 	}
 	
 	/////////////
@@ -1316,7 +1444,7 @@ public class MainController{
 	private boolean findEnrollment(int CID, int SID, int year, String semester) throws SQLException{
 		Connection conn = DriverManager.getConnection(url, user, pass);
 		Statement stmnt = conn.createStatement();
-		String query = "SELECT * FROM enrollments WHERE CID == " + CID + " AND SID == " + SID + " AND Year == " + year + " AND Semester LIKE '%" + semester + "%'";
+		String query = "SELECT * FROM enrollments WHERE CID = " + CID + " AND SID = " + SID + " AND Year = " + year + " AND Semester LIKE '%" + semester + "%'";
 		ResultSet set = stmnt.executeQuery(query);
 		conn.close();
 		stmnt.close();
@@ -1326,7 +1454,7 @@ public class MainController{
 	private boolean findEnrollment(int course, int year) throws SQLException{
 		Connection conn = DriverManager.getConnection(url, user, pass);
 		Statement stmnt = conn.createStatement();
-		String query = "SELECT * FROM enrollments WHERE CID == " + course + " AND Year == " + year ;
+		String query = "SELECT * FROM enrollments WHERE CID = " + course + " AND Year = " + year ;
 		ResultSet set = stmnt.executeQuery(query);
 		conn.close();
 		stmnt.close();
@@ -1337,7 +1465,7 @@ public class MainController{
 		List<Integer> ids = new ArrayList<Integer>();
 		Connection conn = DriverManager.getConnection(url, user, pass);
 		Statement stmnt = conn.createStatement();
-		String query = "SELECT ID FROM enrollments WHERE CID == " + course + " AND Year == " + year ;
+		String query = "SELECT ID FROM enrollments WHERE CID = " + course + " AND Year = " + year ;
 		ResultSet set = stmnt.executeQuery(query);
 		
 		while(set.next())
@@ -1364,9 +1492,9 @@ public class MainController{
 		int enrollmentID = Integer.valueOf(gradeManagementDisplayEID.getText().trim());
 		Connection conn = DriverManager.getConnection(url, user, pass);
 		Statement stmnt = conn.createStatement();
-		String query = "UPDATE enrollments SET Grade = '" + gradeManagementGradeChoiceBox.getValue().trim() + "' WHERE EID == " + enrollmentID;
+		String query = "UPDATE enrollments SET Grade = '" + gradeManagementGradeChoiceBox.getValue().trim() + "' WHERE EID = " + enrollmentID;
 		stmnt.executeUpdate(query);
-		ResultSet updatedSet = stmnt.executeQuery("SELECT * FROM enrollments where EID == " + enrollmentID);
+		ResultSet updatedSet = stmnt.executeQuery("SELECT * FROM enrollments where EID = " + enrollmentID);
 		conn.close();
 		stmnt.close();
 		updatedSet.next();
@@ -1383,13 +1511,13 @@ public class MainController{
 		Connection conn = DriverManager.getConnection(url, user, pass);
 		Statement stmnt = conn.createStatement();
 		// not sure if this is smart but doing multiple queries
-		String query = "UPDATE enrollments SET CID = " + courseID + " WHERE EID == " + enrollmentID;
+		String query = "UPDATE enrollments SET CID = " + courseID + " WHERE EID = " + enrollmentID;
 		stmnt.executeUpdate(query);
-		query = "UPDATE enrollments SET SID = " + studentID + " WHERE EID == " + enrollmentID;
+		query = "UPDATE enrollments SET SID = " + studentID + " WHERE EID = " + enrollmentID;
 		stmnt.executeUpdate(query);
-		query = "UPDATE enrollments SET Semester = '" + semester + "' WHERE EID == " + enrollmentID;
+		query = "UPDATE enrollments SET Semester = '" + semester + "' WHERE EID = " + enrollmentID;
 		stmnt.executeUpdate(query);
-		query = "UPDATE enrollments SET Year = " + year + " WHERE EID == " + enrollmentID;
+		query = "UPDATE enrollments SET Year = " + year + " WHERE EID = " + enrollmentID;
 		stmnt.executeUpdate(query);
 		conn.close();
 		stmnt.close();
@@ -1436,8 +1564,7 @@ public class MainController{
 		displayEnrollmentSID.setText(String.valueOf(enrollment.getStudentId()));
 		displayEnrollmentYear.setText(String.valueOf(enrollment.getYear()));
 		displayEnrollmentSemester.setText(enrollment.getSemester());
-		displayEnrollmentGrade.setText(enrollment.getGrade());
-		
+		displayEnrollmentGrade.setText(enrollment.getGrade());		
 	}
 	
 	public void enrollmentSearchButtonListener() throws IOException{
@@ -2077,11 +2204,13 @@ class Student implements Comparable<Student>, Serializable{
 
 class Course implements Comparable<Course>, Serializable{
 	private int id = 0; // 4 bytes
-	private String num = "", name = "", instruct = "", department = "";
+	private String num = "", name = "";
+	int instruct = 0;
+	int department = 0;
 	// 160 bytes, 20 chars each
 	// 164 bytes
 	public Course(int id) {this.id = id;}
-	public Course(int id, String num, String name, String instruct, String department) {
+	public Course(int id, String num, String name, int instruct, int department) {
 		this.num = num;
 		this.id = id;
 		this.name = name;
@@ -2092,14 +2221,14 @@ class Course implements Comparable<Course>, Serializable{
 	public void setNum(String num) {this.num = num;}
 	public void setId(int id) {this.id = id;}
 	public void setName(String name) {this.name = name;}
-	public void setInstruct(String instruct) {this.instruct = instruct;}
-	public void setDepartment(String department) {this.department = department;}
+	public void setInstruct(int instruct) {this.instruct = instruct;}
+	public void setDepartment(int department) {this.department = department;}
 	
 	public String getNum() {return this.num;}
 	public int getId() {return this.id;}
 	public String getName() {return this.name;}
-	public String getInstruct() {return this.instruct;}
-	public String getDepartment() {return this.department;}
+	public int getInstruct() {return this.instruct;}
+	public int getDepartment() {return this.department;}
 	
 	public String toString() {
 		String str = "CID: " + id + "\nCName: " + name + "\nInstruct: " + instruct + "\nDepartment: " + department +
