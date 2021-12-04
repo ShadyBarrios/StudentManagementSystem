@@ -317,7 +317,7 @@
                         <Insets right="28.0" />
                      </HBox.margin>
                   </Label>
-                  <ChoiceBox fx:id="editCourseInstructorChoiceBox" onMouseClicked="#updateInstructorListEditCourseChoiceBox" prefHeight="26.0" prefWidth="150.0" />
+                  <ChoiceBox fx:id="editCourseInstructorChoiceBox" onContextMenuRequested="#updateInstructorListEditCourseChoiceBox" prefHeight="26.0" prefWidth="150.0" />
                </children>
             </HBox>
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
@@ -369,7 +369,7 @@
                         <Insets right="28.0" />
                      </HBox.margin>
                   </Label>
-                  <ChoiceBox fx:id="addCourseInstructorChoiceBox" onMouseClicked="#updateInstructorListAddCourseChoiceBox" prefHeight="26.0" prefWidth="150.0" />
+                  <ChoiceBox fx:id="addCourseInstructorChoiceBox" onContextMenuRequested="#updateInstructorListAddCourseChoiceBox" prefHeight="26.0" prefWidth="150.0" />
                </children>
             </HBox>
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
