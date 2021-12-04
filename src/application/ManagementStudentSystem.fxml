@@ -90,7 +90,7 @@
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
                <children>
                   <Button fx:id="createStudentButton" mnemonicParsing="false" onAction="#createStudentButtonListener" text="Create Student" />
-                  <Button fx:id="cancelButton" mnemonicParsing="false" text="Cancel" />
+                  <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#cancelButtonListener" text="Cancel" />
                </children>
             </HBox>
          </children>

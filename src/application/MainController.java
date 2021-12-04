@@ -26,14 +26,9 @@ import javafx.scene.layout.VBox;
 
 import java.sql.*;
 
-////////////////////////////////
-// NOTES:
-// - add button to edit screens to delete students, courses, and enrollments
-// - add confirmation screen for delete buttons (send "*type* *id*" as parameter for message), have two buttons yes, no 
-
 
 ///////////////////////////
-// MIDTERM DUE BY MONDAY
+// FINAL DUE BY MONDAY
 //////////////////////////
 public class MainController{
 	public static int SIDCounter = 0, CIDCounter = 0, EIDCounter = 0;
@@ -156,47 +151,11 @@ public class MainController{
 	private int searchStudentRequestedID = 0, searchCourseRequestedID = 0, searchEnrollmentRequestedID = 0;
 	private int createEnrollmentRequestedStudentID = 0, searchDepartmentRequestedID = 0, searchInstructorRequestedID = 0;
 	private boolean studentJustSearched = false, courseJustSearched = false, enrollmentJustSearched = false;
-	private boolean gradeManagementJustSearched = false, departmentJustSearched = false, instructorJustSearched = false;
+	private boolean departmentJustSearched = false, instructorJustSearched = false;
 	private Enrollment searchedEnrollment;
 	private List<Integer> listOfReportEnrollmentIds;
 	
-	private static ObjLinkedList<Student> StudentLinkedList;
-	private static ObjLinkedList<Course> CourseLinkedList;
-	private static ObjLinkedList<Enrollment> EnrollmentLinkedList;
-	private static List<Department> DepartmentList;
-	private static List<Instructor> InstructorList;
-	
-	private static File StudentFile;
-	private static File CourseFile;
-	private static File EnrollmentFile;
-	private static File DepartmentFile;
-	private static File InstructorFile;
 	private static File HighestFile;
-	
-	private static FileOutputStream StudentOutput;
-	private static ObjectOutputStream ObjectStudentOutput;
-	private static FileInputStream StudentInput;
-	private static ObjectInputStream ObjectStudentInput;
-	
-	private static FileOutputStream CourseOutput;
-	private static ObjectOutputStream ObjectCourseOutput;
-	private static FileInputStream CourseInput;
-	private static ObjectInputStream ObjectCourseInput;
-	
-	private static FileOutputStream EnrollmentOutput;
-	private static ObjectOutputStream ObjectEnrollmentOutput;
-	private static FileInputStream EnrollmentInput;
-	private static ObjectInputStream ObjectEnrollmentInput;
-	
-	private static FileOutputStream DepartmentOutput;
-	private static ObjectOutputStream ObjectDepartmentOutput;
-	private static FileInputStream DepartmentInput;
-	private static ObjectInputStream ObjectDepartmentInput;
-	
-	private static FileOutputStream InstructorOutput;
-	private static ObjectOutputStream ObjectInstructorOutput;
-	private static FileInputStream InstructorInput;
-	private static ObjectInputStream ObjectInstructorInput;
 	
 	private static FileOutputStream HighestOutput;
 	private static ObjectOutputStream ObjectHighestOutput;
@@ -207,9 +166,12 @@ public class MainController{
 	public static String user;
 	public static String pass;
 	
+	public static Connection conn;
+	public static Statement stmnt;
+	
 	// Use OnMouseClicked for instructor box
 	
-	public void initialize() throws IOException, ClassNotFoundException{
+	public void initialize() throws IOException, ClassNotFoundException, SQLException{
 		LOG("Controller main");
 		
 		File appconfig = new File("src/application/AppConfig.txt");
@@ -227,15 +189,8 @@ public class MainController{
 		else
 			System.out.println("no pass");
 		
-		
-		
 		fileScanner.close();
 		
-		StudentFile = new File("StudentFile.dat");
-		CourseFile = new File("CourseFile.dat");
-		EnrollmentFile = new File("EnrollmentFile.dat");
-		DepartmentFile = new File("DepartmentFile.dat");
-		InstructorFile = new File("InstructorFile.dat");
 		HighestFile = new File("HighestFile.dat");
 		
 		TruncateDB(true);
@@ -249,42 +204,36 @@ public class MainController{
 		MenuLabel.setVisible(true);
 	}
 	
-	private void TruncateDB(boolean doTrucate) throws ClassNotFoundException, IOException {
-		SetUpHighestList(doTrucate);
-		if(doTrucate) {
-			try {
-				Connection conn = DriverManager.getConnection(url, user, pass);
-				Statement stmnt = conn.createStatement();
-				int rows = 0;
-				String[] wipes = {"DELETE FROM students", "DELETE FROM courses", 
-						"DELETE FROM enrollments", "DELETE FROM instructors",
-						"DELETE FROM departments"};
-				for(String wipe : wipes)
-					rows += stmnt.executeUpdate(wipe);
+	private void TruncateDB(boolean doTruncate) throws ClassNotFoundException, IOException, SQLException {
+		SetUpHighestList(doTruncate);
+		try {
+			// will create conn and stmnt for future use
+			conn = DriverManager.getConnection(url, user, pass);
+			stmnt = conn.createStatement();
+				if(doTruncate){
+					int rows = 0;
+					String[] wipes = {"DELETE FROM students", "DELETE FROM courses", 
+							"DELETE FROM enrollments", "DELETE FROM instructors",
+							"DELETE FROM departments"};
+					for(String wipe : wipes)
+						rows += stmnt.executeUpdate(wipe);
+					
+					System.out.println(rows + " total rows deleted\n");
 				
-				System.out.println(rows + " total rows deleted\n");
-				
-				stmnt.close();
-				conn.close();
-				
-				return;
-			} catch (SQLException e) {
-				System.out.println("Exception: " + e);
-			}
+					return;
+				}
+		} catch (SQLException e) {
+			System.out.println("Exception: " + e);
 		}
 		System.out.println("Did not truncate");
 	}
 	
 	private boolean IdIsInDB(int id, String table) {
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			String type = table.equals("enrollment") ? "EID" : "ID";
 			String query = "SELECT * FROM " + table + " WHERE " + type + " = " + id; 
 			ResultSet set = stmnt.executeQuery(query);
 			boolean returnVal = set.next();
-			conn.close();
-			stmnt.close();
 			return returnVal;
 		}
 		catch(Exception e) {
@@ -295,14 +244,11 @@ public class MainController{
 	
 	private int GetHighestID(String objType) {
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			String ID = objType.equals("enrollments") ? "EID" : "ID";
 			String query = "SELECT MAX(" + ID + ") FROM " + objType;
 			ResultSet set = stmnt.executeQuery(query);
-			int id = set.getInt(ID);
-			conn.close();
-			stmnt.close();
+			set.next();
+			int id = set.getInt(1);
 			return id;
 		}
 		catch(Exception e) {
@@ -313,13 +259,8 @@ public class MainController{
 	
 	private boolean IsEmpty(String type) {
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			ResultSet set = stmnt.executeQuery("SELECT * FROM " + type);
-			boolean returnValue = set.next();
-			conn.close();
-			stmnt.close();
-			return returnValue;
+			return !set.next();
 		}
 		catch(Exception e) {
 			System.out.println("Exception: " + e.getMessage());
@@ -329,18 +270,13 @@ public class MainController{
 	
 	private Object GetHighestFrom(String table) throws SQLException{
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			String type = table.equals("enrollments") ? "EID" : "ID";
 			ResultSet set = stmnt.executeQuery("SELECT MAX(" + type + ") FROM " + table);
 			set.next();
 			int highest = set.getInt(1);
 			set = stmnt.executeQuery("SELECT * FROM " + table + " WHERE " + type + " = " + highest);
 			Object obj = GenerateObject(table, set);
-			conn.close();
-			stmnt.close();
-			System.out.println(set.isClosed());
-			return GenerateObject(table, set);
+			return obj;
 		}
 		catch(Exception e) {
 			System.out.println("Exception: " + e.getMessage());
@@ -349,8 +285,6 @@ public class MainController{
 	}
 	
 	private String GetDepartmentName(int depId) throws SQLException{
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
 		ResultSet set = stmnt.executeQuery("SELECT * FROM departments WHERE ID = " + depId);
 		if(set.next())
 			return set.getString("Name");
@@ -359,8 +293,6 @@ public class MainController{
 	}
 	
 	private String GetInstructorName(int instructID) throws SQLException{
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
 		ResultSet set = stmnt.executeQuery("SELECT * FROM instructors WHERE ID = " + instructID);
 		if(set.next())
 			return set.getString("Name");
@@ -387,12 +319,8 @@ public class MainController{
 	
 	private Object GetFrom(String table, int id) throws SQLException{
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			String type = table.equals("enrollments") ? "EID" : "ID";
 			ResultSet set = stmnt.executeQuery(("SELECT * FROM " + table + " WHERE " + type + " = " + id));
-			set.next();
-			conn.close();
 			return GenerateObject(table, set);
 		}
 		catch(Exception e) {
@@ -402,8 +330,6 @@ public class MainController{
 	}
 	
 	private boolean AddToDatabase(Object obj) throws SQLException {
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
 		boolean returner;
 		if(obj instanceof Student) {
 			Student student = (Student)obj;
@@ -416,7 +342,7 @@ public class MainController{
 		else if(obj instanceof Course) {
 			Course course = (Course)obj;
 			String update = "INSERT INTO courses (ID, Num, Name, InstructorID, DepartmentID) VALUES (" + course.getId() 
-					+ ", '" + course.getNum() + "', '" + course.getName() + "', '" + course.getInstructID() + "', '" 
+					+ ", '" + course.getNum() + "', '" + course.getName() + "', '" + course.getInstructorID() + "', '" 
 					+ course.getDepartmentID() + "')";
 			stmnt.executeUpdate(update);
 			returner = true;
@@ -444,8 +370,6 @@ public class MainController{
 		}
 		else
 			returner = false;
-		conn.close();
-		stmnt.close();
 		return returner;
 	}
 	
@@ -453,60 +377,64 @@ public class MainController{
 	 * NEEEDDDD TOOO FINISH HEREREERER
 	 */
 	private boolean EditDatabase(Object obj) throws SQLException{
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
 		boolean returner;
 		if(obj instanceof Student) {
 			Student student = (Student)obj;
-			String update = "UPDATE students SET FirstName = '" + student.getFirstName() + "', "
-					+ "LastName = '" + student.getLastName() + "', Address = '" + student.getAddress() + "', " 
-					+ "City = '" + student.getCity() + "', State = '" + student.getState() + "' WHERE ID = " + student.getId();
-			stmnt.executeUpdate(update);
+			String[] updates = {
+					"UPDATE students SET FirstName = '" + student.getFirstName() + "' WHERE ID = " + student.getId(),
+					"UPDATE students SET LastName = '" + student.getLastName() + "' WHERE ID = " + student.getId(),
+					"UPDATE students SET Address = '" + student.getAddress() + "' WHERE ID = " + student.getId(),
+					"UPDATE students SET City = '" + student.getCity() + "' WHERE ID = " + student.getId(),
+					"UPDATE students SET State = '" + student.getState() + "' WHERE ID = " + student.getId()
+			};
+			for(String update : updates)
+				stmnt.executeUpdate(update);
 			returner = true;
 		}
 		else if(obj instanceof Course) {
 			Course course = (Course)obj;
-			String update = "UPDATE courses (ID, Num, Name, InstructorID, DepartmentID) VALUES (" + course.getId() 
-					+ ", '" + course.getNum() + "', '" + course.getName() + "', " + course.getInstructID() + ", " 
-					+ course.getDepartmentID() + ")";
-			stmnt.executeUpdate(update);
+			String[] updates = {
+				"UPDATE courses SET Num = '" + course.getNum() + "' WHERE ID = " + course.getId(),
+				"UPDATE courses SET Name = '" + course.getName() + "' WHERE ID = " + course.getId(),
+				"UPDATE courses SET InstructorID = " + course.getInstructorID() + " WHERE ID = " + course.getId(),
+				"UPDATE courses SET DepartmentID = " + course.getDepartmentID() + " WHERE ID = " + course.getId()
+			};
+			for(String update : updates)
+				stmnt.executeUpdate(update);
 			returner = true;
 		}
 		else if(obj instanceof Enrollment) {
 			Enrollment enrollment = (Enrollment)obj;
-			String update = "INSERT INTO enrollments (EID, SID, CID, Year, Semester, Grade) VALUES (" + enrollment.getEnrollmentId()
-			+ ", " + enrollment.getStudentId() + ", " + enrollment.getCourseId() + ", " + enrollment.getYear() + ", '" 
-			+ enrollment.getSemester() + "', '" + enrollment.getGrade() + "')";
-			stmnt.executeUpdate(update);
+			String[] updates = {
+					"UPDATE enrollments SET SID = " + enrollment.getStudentId() + " WHERE EID = " + enrollment.getEnrollmentId(),
+					"UPDATE enrollments SET CID = " + enrollment.getCourseId() + " WHERE EID = " + enrollment.getEnrollmentId(),
+					"UPDATE enrollments SET Year = " + enrollment.getYear() + " WHERE EID = " + enrollment.getEnrollmentId(),
+					"UPDATE enrollments SET Semester = '" + enrollment.getSemester() + "' WHERE EID = " + enrollment.getEnrollmentId(),
+					"UPDATE enrollments SET Grade = '" + enrollment.getGrade() + "' WHERE EID = " + enrollment.getEnrollmentId()
+			};
+			for(String update : updates)
+				stmnt.executeUpdate(update);
 			returner = true;
 		}
 		else if(obj instanceof Department) {
 			Department department = (Department)obj;
-			String update = "INSERT INTO departments (ID, Name) VALUES (" + department.getId() + ", '" + department.getName() + "')";
+			String update = "UPDATE departments SET Name = '" + department.getName() + "' WHERE ID = " + department.getId();
 			stmnt.executeUpdate(update);
 			returner = true;
 		}
 		else if(obj instanceof Instructor) {
 			Instructor instructor = (Instructor)obj;
-			String update = "INSERT INTO instructors (ID, Name, DepID) VALUES (" + instructor.getId() + ", '" + 
-			instructor.getName() + "', " + instructor.getDepID() + ")";
-			stmnt.executeUpdate(update);
+			String[] updates = {
+					"UPDATE instructors SET Name = '" + instructor.getName() + "' WHERE ID = " + instructor.getId(),
+					"UPDATE instructors set DepID = " + instructor.getDepID() + " WHERE ID = " + instructor.getId()
+			};
+			for(String update : updates)
+				stmnt.executeUpdate(update);
 			returner = true;
 		}
 		else
 			returner = false;
-		conn.close();
-		stmnt.close();
 		return returner;
-	}
-	
-	private ResultSet GetAllCourses() throws SQLException {
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
-		ResultSet set = stmnt.executeQuery("SELECT * FROM courses");
-		conn.close();
-		stmnt.close();
-		return set;
 	}
 	
 	private void makeAllInvisible() {
@@ -545,132 +473,6 @@ public class MainController{
 		sortCoursesVBOX.setVisible(false);
 	}
 	
-	// if do not truncate is true and if the file isn't empty, the linked list will be
-	// updated with the data stored in the StudentFile
-	private static void SetUpStudentLinkedList(boolean DoNotTruncate) throws IOException, ClassNotFoundException{
-		if(StudentFile.length() > 10 && DoNotTruncate)
-			ReadFromStudentFile();
-		else
-			StudentLinkedList = new ObjLinkedList<Student>();
-	}
-	
-	// linked list will be updated with the data stored in the StudentFile
-	private static void ReadFromStudentFile() throws IOException, ClassNotFoundException{
-		StudentInput = new FileInputStream(StudentFile); // false for do-truncate
-		ObjectStudentInput = new ObjectInputStream(StudentInput);
-		StudentLinkedList = (ObjLinkedList<Student>)(ObjectStudentInput.readObject());
-		ObjectStudentInput.close();
-		StudentInput.close();
-	}
-	
-	// student linked list will replace the existing linked list in student file
-	// by truncating file prior to writing
-	private static void WriteToStudentFile() throws IOException{
-		StudentOutput = new FileOutputStream(StudentFile);
-		ObjectStudentOutput = new ObjectOutputStream(StudentOutput);
-		ObjectStudentOutput.writeObject(StudentLinkedList);
-		ObjectStudentOutput.close();
-		StudentOutput.close();
-	}
-	
-	// same as SetUpStudentLinkedList
-	private static void SetUpCourseLinkedList(boolean DoNotTruncate) throws IOException, ClassNotFoundException{
-		if(CourseFile.length() > 10 && DoNotTruncate)
-			ReadFromCourseFile();
-		else
-			CourseLinkedList = new ObjLinkedList<Course>();
-	}
-	
-	// same as ReadFromStudentFile
-	private static void ReadFromCourseFile() throws IOException, ClassNotFoundException{
-		CourseInput = new FileInputStream(CourseFile);
-		ObjectCourseInput = new ObjectInputStream(CourseInput);
-		CourseLinkedList = (ObjLinkedList<Course>)(ObjectCourseInput.readObject());
-		ObjectCourseInput.close();
-		CourseInput.close();
-	}
-	
-	// same as WriteToStudentFile 
-	private static void WriteToCourseFile() throws IOException{
-		CourseOutput = new FileOutputStream(CourseFile);
-		ObjectCourseOutput = new ObjectOutputStream(CourseOutput);
-		ObjectCourseOutput.writeObject(CourseLinkedList);
-		ObjectCourseOutput.close();
-		CourseOutput.close();
-	}
-	
-	// same as SetUpStudentLinkedList
-	private static void SetUpEnrollmentLinkedList(boolean DoNotTruncate) throws IOException, ClassNotFoundException{
-		if(EnrollmentFile.length() > 10 && DoNotTruncate)
-			ReadFromEnrollmentFile();
-		else
-			EnrollmentLinkedList = new ObjLinkedList<Enrollment>();
-	}
-	
-	// same as ReadFromStudentFile
-	private static void ReadFromEnrollmentFile() throws IOException, ClassNotFoundException{
-		EnrollmentInput = new FileInputStream(EnrollmentFile);
-		ObjectEnrollmentInput = new ObjectInputStream(EnrollmentInput);
-		EnrollmentLinkedList = (ObjLinkedList<Enrollment>)(ObjectEnrollmentInput.readObject());
-		ObjectEnrollmentInput.close();
-		EnrollmentInput.close();
-	}
-	
-	// same as WriteToEnrollmentFile
-	private static void WriteToEnrollmentFile() throws IOException{
-		EnrollmentOutput = new FileOutputStream(EnrollmentFile);
-		ObjectEnrollmentOutput = new ObjectOutputStream(EnrollmentOutput);
-		ObjectEnrollmentOutput.writeObject(EnrollmentLinkedList);
-		ObjectEnrollmentOutput.close();
-		EnrollmentOutput.close();
-	}
-	
-	private static void SetUpDepartmentList(boolean DoNotTruncate) throws IOException, ClassNotFoundException{
-		if(DepartmentFile.length() > 10 && DoNotTruncate)
-			ReadFromDepartmentFile();
-		else
-			DepartmentList = new ArrayList<Department>();
-	}
-	
-	private static void ReadFromDepartmentFile() throws IOException, ClassNotFoundException{
-		DepartmentInput = new FileInputStream(DepartmentFile);
-		ObjectDepartmentInput = new ObjectInputStream(DepartmentInput);
-		DepartmentList = (List<Department>)(ObjectDepartmentInput.readObject());
-		DepartmentInput.close();
-		ObjectDepartmentInput.close();
-	}
-	
-	private static void WriteToDepartmentFile() throws IOException{
-		DepartmentOutput = new FileOutputStream(DepartmentFile);
-		ObjectDepartmentOutput = new ObjectOutputStream(DepartmentOutput);
-		ObjectDepartmentOutput.writeObject(DepartmentList);
-		DepartmentOutput.close();
-		ObjectDepartmentOutput.close();
-	}
-	
-	private static void SetUpInstructorList(boolean DoNotTruncate) throws IOException, ClassNotFoundException{
-		if(InstructorFile.length() > 10 && DoNotTruncate)
-			ReadFromInstructorFile();
-		else
-			InstructorList = new ArrayList<Instructor>();
-	}
-	
-	private static void ReadFromInstructorFile() throws IOException, ClassNotFoundException{
-		InstructorInput = new FileInputStream(InstructorFile);
-		ObjectInstructorInput = new ObjectInputStream(InstructorInput);
-		InstructorList = (List<Instructor>)(ObjectInstructorInput.readObject());
-		InstructorInput.close();
-		ObjectInstructorInput.close();
-	}
-	
-	private static void WriteToInstructorFile() throws IOException{
-		InstructorOutput = new FileOutputStream(InstructorFile);
-		ObjectInstructorOutput = new ObjectOutputStream(InstructorOutput);
-		ObjectInstructorOutput.writeObject(InstructorList);
-		InstructorOutput.close();
-		ObjectInstructorOutput.close();
-	}
-	
 	private static void UpdateHighestFile() throws IOException{
 		HighestOutput = new FileOutputStream(HighestFile);
 		ObjectHighestOutput = new ObjectOutputStream(HighestOutput);
@@ -693,106 +495,31 @@ public class MainController{
 		HighestInput.close();
 		ObjectHighestInput.close();
 	}
-	// after the deletion of a student, the linked list will update the ids of
-	// the students currently remaining
-	// starting at index 0, ending in the total number of students
-	// at index 0 (first student), the id will become (index + 1), 1
-	// will repeat until final index is reached
-	// the StudentFile will then be updated via WritetoStudentFile
-
 	
-	// will first remove from linked list, then all enrollments containing the student id
-	// ids are updated after procedure
 	private static void DeleteStudentFromDatabase(int stuID) throws IOException {
 		try{
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			String deleteQuery = "DELETE * FROM students WHERE SID = " + stuID;
 			stmnt.executeUpdate(deleteQuery);
 			deleteQuery = "DELETE * FROM enrollments WHERE SID = " + stuID;
 			stmnt.executeUpdate(deleteQuery);
-			conn.close();
-			stmnt.close();
+			
 		}
 		catch(Exception e) {
 			System.out.println("Exception: " + e.getMessage());
 		}
-		// enrollmentfile and list updated in deleteall...
 	}
 	// same as method above
 	private static void DeleteCourseFromDatabase(int corID) throws IOException {
 		try{
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			String deleteQuery = "DELETE * FROM courses WHERE ID = " + corID;
 			stmnt.executeUpdate(deleteQuery);
 			deleteQuery = "DELETE * FROM enrollments WHERE CID = " + corID;
 			stmnt.executeUpdate(deleteQuery);
-			conn.close();
-			stmnt.close();
-		}
-		catch(Exception e) {
-			System.out.println("Exception: " + e.getMessage());
-		}
-		// enrollmentfile and list updated in deleteall...
-	}
-	
-	// creates a list of integers to hold enrollment indexes
-	// loops through the entire list, the index of an enrollment with matching stu id is appended to list
-	// for each index, in reverse order (to avoid out of bounds), remove from enrollmentlinked list
-	// update enrollmentfile and update enrollment linked list
-	private static void DeleteAllEnrollmentsWithStudentInstance(int stuID) throws IOException {
-		try{
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
-			String deleteQuery = "DELETE * FROM enrollments WHERE SID = " + stuID;
-			stmnt.executeUpdate(deleteQuery);
-			conn.close();
-			stmnt.close();
 		}
 		catch(Exception e) {
 			System.out.println("Exception: " + e.getMessage());
 		}
 	}
-	
-	// same as method above
-	private static void DeleteAllEnrollmentsWithCourseInstance(int corID) throws IOException{
-		try{
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
-			String deleteQuery = "DELETE * FROM enrollments WHERE CID = " + corID;
-			stmnt.executeUpdate(deleteQuery);
-			conn.close();
-			stmnt.close();
-		}
-		catch(Exception e) {
-			System.out.println("Exception: " + e.getMessage());
-		}
-	}
-	
-	// if the file is empty then it wont read (avoids error)
-//		private static void setUpLinkedList() throws IOException, ClassNotFoundException {
-//			if(file.length() > 50 && DoNotTruncate)
-//				readFromFile();
-//		}
-//		
-//		// false indicates that the ting needs to truncate
-//		private static void writeToFile() throws IOException {
-//			outStream = new FileOutputStream(file, false);
-//			objectOutputStream  = new ObjectOutputStream(outStream);
-//			objectOutputStream.writeObject(StudentLinked);
-//			outStream.close();
-//			objectOutputStream.close();
-//		}
-//		
-//		// will read the one and only list in file
-//		private static void readFromFile() throws IOException, ClassNotFoundException{
-//			inStream = new FileInputStream(file);
-//			objectInputStream = new ObjectInputStream(inStream);
-//			StudentLinked = (LinkedListBoom<Student>)objectInputStream.readObject();
-//			inStream.close();
-//			objectInputStream.close();
-//		}
 	
 	private static void LOG(String str) {System.out.println(str);}
 	private static void LOG(int number) {System.out.println(number);}
@@ -801,7 +528,6 @@ public class MainController{
 	private void allJustSearchedFalse() {
 		studentJustSearched = false;
 		courseJustSearched = false;
-		gradeManagementJustSearched = false;
 		enrollmentJustSearched = false;
 		departmentJustSearched = false;
 		instructorJustSearched = false;
@@ -829,15 +555,11 @@ public class MainController{
 			addCourseVBOX.setVisible(true);
 			addCourseDepartmentChoiceBox.getItems().removeAll(addCourseDepartmentChoiceBox.getItems());
 			addCourseDepartmentChoiceBox.setValue("");
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			ResultSet departments = stmnt.executeQuery("SELECT * FROM departments");
 			while(departments.next())
-				addCourseDepartmentChoiceBox.getItems().add(departments.getInt("ID") + " " + departments.getString("name"));
+				addCourseDepartmentChoiceBox.getItems().add(departments.getInt("ID") + "    " +departments.getString("name"));
 			addCourseInstructorChoiceBox.getItems().removeAll(addCourseInstructorChoiceBox.getItems());
 			addCourseInstructorChoiceBox.setValue("");
-			conn.close();
-			stmnt.close();
 		}
 	}
 	
@@ -866,15 +588,11 @@ public class MainController{
 		else {
 			addInstructorVBOX.setVisible(true);
 			addInstructorDepartmentChoiceBox.getItems().removeAll(addInstructorDepartmentChoiceBox.getItems());
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			ResultSet departments = stmnt.executeQuery("SELECT * FROM departments");
 			while(departments.next()) {
-				String option = departments.getInt("ID") + " " + departments.getString("Name");
+				String option = departments.getInt("ID") + "    " +departments.getString("Name");
 				addInstructorDepartmentChoiceBox.getItems().add(option);
 			}
-			conn.close();
-			stmnt.close();
 		}
 	}
 	
@@ -951,8 +669,6 @@ public class MainController{
 			makeAllInvisible();
 			searchReportVBOX.setVisible(true);
 			searchReportCourseChoiceBox.getItems().removeAll(searchReportCourseChoiceBox.getItems());
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			ResultSet courses = stmnt.executeQuery("SELECT * FROM courses");
 			int id;
 			String num;
@@ -960,7 +676,7 @@ public class MainController{
 			while(courses.next()) {
 				id = courses.getInt("ID");
 				num = courses.getString("Num");
-				option = id + " " + num;
+				option = id + "    " +num;
 				searchReportCourseChoiceBox.getItems().add(option);
 			}
 			
@@ -980,13 +696,6 @@ public class MainController{
 	}
 	
 	// Student
-	
-	public String displayAllStudents() {
-		String message = "";
-		for(int i = 0; i < StudentLinkedList.size(); i++)
-			message += StudentLinkedList.get(i) + "\n";
-		return message;
-	}
 	
 	public void createStudentButtonListener() throws IOException, SQLException{
 		LOG("Create Student");
@@ -1093,6 +802,7 @@ public class MainController{
 	}
 	
 	private void displaySearchedStudent(int recordNumber) throws IOException, SQLException{
+		System.out.println(recordNumber);
 		Student searched = (Student)GetFrom("students", recordNumber);
 		
 		makeAllInvisible();
@@ -1109,14 +819,10 @@ public class MainController{
 	public void displayStudentEditButtonListener() throws SQLException{
 		makeAllInvisible();
 		editStudentVBOX.setVisible(true);
-
-		System.out.println(studentJustSearched + " " + studentRecordNumberEditing + " " + searchStudentRequestedID);
 		
 		studentRecordNumberEditing = (searchStudentRequestedID == 0 || !studentJustSearched) 
 									? GetHighestID("students")
 									: searchStudentRequestedID;
-		
-		System.out.println(studentJustSearched + " " + studentRecordNumberEditing + " " + searchStudentRequestedID);
 		
 		Student editing = (Student)GetFrom("students", studentRecordNumberEditing);
 		
@@ -1158,11 +864,11 @@ public class MainController{
 		makeAllInvisible(); 
 		postAddCourseVBOX.setVisible(true);
 		
-		Course course = CourseLinkedList.getLast();
+		Course course = (Course)GetHighestFrom("courses");
 		postAddCourseID.setText(String.valueOf(course.getId()));
 		postAddCourseNumber.setText(course.getNum());
 		postAddCourseName.setText(course.getName());
-		postAddCourseInstructor.setText(course.getInstructID() + " " + GetInstructorName(course.getInstructID()));
+		postAddCourseInstructor.setText(course.getInstructorID() + "    " +GetInstructorName(course.getInstructorID()));
 		postAddCourseDepartment.setText(course.getDepartmentID() +  " " + GetDepartmentName(course.getDepartmentID()));
 	}
 	
@@ -1183,15 +889,11 @@ public class MainController{
 		editCourseName.setText(course.getName());
 		editCourseDepartmentChoiceBox.getItems().removeAll(editCourseDepartmentChoiceBox.getItems());
 		editCourseDepartmentChoiceBox.setValue("");
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
 		ResultSet set = stmnt.executeQuery("SELECT * FROM departments");
 		while(set.next())
-			editCourseDepartmentChoiceBox.getItems().add(set.getString("Name"));
+			editCourseDepartmentChoiceBox.getItems().add(set.getInt("ID") + "    " +set.getString("Name"));
 		editCourseInstructorChoiceBox.getItems().removeAll(editCourseInstructorChoiceBox.getItems());
 		editCourseInstructorChoiceBox.setValue("");
-		conn.close();
-		stmnt.close();
 	}
 	
 	public void updateInstructorListEditCourseChoiceBox() throws SQLException {
@@ -1200,8 +902,6 @@ public class MainController{
 		if(depName.equals(""))
 			editCourseInstructorChoiceBox.getItems().add("No Department Selected");
 		else {
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			ResultSet set = stmnt.executeQuery("SELECT * FROM instructors");
 			while(set.next()){
 				if(GetDepartmentName(set.getInt("DepartmentID")).equalsIgnoreCase(depName))
@@ -1217,12 +917,10 @@ public class MainController{
 		if(depName.equals(""))
 			addCourseInstructorChoiceBox.getItems().add("No Department Selected");
 		else {
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			Statement stmnt = conn.createStatement();
 			ResultSet set = stmnt.executeQuery("SELECT * FROM instructors");
 			while(set.next()){
 				if(GetDepartmentName(set.getInt("DepartmentID")).equalsIgnoreCase(depName))
-					addCourseInstructorChoiceBox.getItems().add(set.getInt("ID") + " " +  set.getString("Name"));
+					addCourseInstructorChoiceBox.getItems().add(set.getInt("ID") + "    " + set.getString("Name"));
 			}
 	
 			addCourseInstructorChoiceBox.setValue("");
@@ -1266,8 +964,8 @@ public class MainController{
 		displayCourseID.setText(String.valueOf(course.getId()));
 		displayCourseNumber.setText(course.getNum());
 		displayCourseName.setText(course.getName());
-		displayCourseInstructor.setText(course.getInstructID() + " " + GetInstructorName(course.getInstructID()));
-		displayCourseDepartment.setText(course.getDepartmentID() + " " + GetDepartmentName(course.getDepartmentID()));
+		displayCourseInstructor.setText(course.getInstructorID() + "    " +GetInstructorName(course.getInstructorID()));
+		displayCourseDepartment.setText(course.getDepartmentID() + "    " +GetDepartmentName(course.getDepartmentID()));
 	}
 	
 	public void displayCourseEditButtonListener() throws IOException, SQLException{
@@ -1284,11 +982,9 @@ public class MainController{
 		editCourseName.setText(course.getName());
 		editCourseDepartmentChoiceBox.getItems().removeAll(editCourseDepartmentChoiceBox.getItems());
 		editCourseDepartmentChoiceBox.setValue("");
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
 		ResultSet set = stmnt.executeQuery("SELECT * FROM instructors");
 		while(set.next()){
-			editCourseDepartmentChoiceBox.getItems().add(set.getInt("ID") + " " + set.getString("Name"));
+			editCourseDepartmentChoiceBox.getItems().add(set.getInt("ID") + "    " +set.getString("Name"));
 		}
 		editCourseInstructorChoiceBox.getItems().removeAll(editCourseInstructorChoiceBox.getItems());
 		editCourseInstructorChoiceBox.setValue("");
@@ -1298,14 +994,6 @@ public class MainController{
 		int id = courseRecordNumberEditing;
 		DeleteCourseFromDatabase(id);
 		ErrorMessage("Course Deleted");
-	}
-	
-	private int getHighestCourseID() {
-		int[] ids = new int[CourseLinkedList.size()];
-		for(int i = 0; i < CourseLinkedList.size(); i++)
-			ids[i] = CourseLinkedList.get(i).getId();
-		Arrays.sort(ids);
-		return ids[ids.length - 1];
 	}
 	
 	// 10/24 LEFT OFF HERE
@@ -1319,29 +1007,28 @@ public class MainController{
 			ErrorMessage("Invalid search, IDs are numerical");
 		}
 		
-		if(StudentLinkedList.size() == 0) 
+		if(IsEmpty("students")) 
 			ErrorMessage("No students have been created");
 		else if(!IdIsInDB(createEnrollmentRequestedStudentID, "students"))
 			ErrorMessage("Invalid Student Search");
-		else if(CourseLinkedList.size() == 0)
+		else if(IsEmpty("courses"))
 			ErrorMessage("No courses have been created");
 		else
 			enrollmentCanBeCreated();
 	}
 	
-	private void enrollmentCanBeCreated() throws IOException{
+	private void enrollmentCanBeCreated() throws IOException, SQLException{
 		makeAllInvisible();
 		createEnrollmentHBOX.setVisible(true);
 		
-		Student search = new Student(createEnrollmentRequestedStudentID);
-		Student student = StudentLinkedList.get(search, true);
-		
-		createEnrollmentDisplayStudentID.setText(String.valueOf(student.getId()));
-		createEnrollmentDisplayStudentFirstName.setText(student.getFirstName());
-		createEnrollmentDisplayStudentLastName.setText(student.getLastName());
-		createEnrollmentDisplayStudentAddress.setText(student.getAddress());
-		createEnrollmentDisplayStudentCity.setText(student.getCity());
-		createEnrollmentDisplayStudentState.setText(student.getState());
+		Student set = (Student)GetFrom("students", createEnrollmentRequestedStudentID);
+
+		createEnrollmentDisplayStudentID.setText(String.valueOf(set.getId()));
+		createEnrollmentDisplayStudentFirstName.setText(set.getFirstName());
+		createEnrollmentDisplayStudentLastName.setText(set.getLastName());
+		createEnrollmentDisplayStudentAddress.setText(set.getAddress());
+		createEnrollmentDisplayStudentCity.setText(set.getCity());
+		createEnrollmentDisplayStudentState.setText(set.getState());
 		
 		createEnrollmentYearChoiceBox.getItems().removeAll(createEnrollmentYearChoiceBox.getItems());
 		createEnrollmentYearChoiceBox.getItems().addAll("2019", "2020", "2021", "2022");
@@ -1351,19 +1038,19 @@ public class MainController{
 		
 	}
 	
-	private void addAllCourseEnrollmentOptions() throws IOException {
+	private void addAllCourseEnrollmentOptions() throws IOException, SQLException {
 		createEnrollmentCourseChoiceBox.getItems().removeAll(createEnrollmentCourseChoiceBox.getItems());
-		
-		for(int i = 0; i < CourseLinkedList.size(); i++) {
-			int id = CourseLinkedList.get(i).getId();
-			String num = CourseLinkedList.get(i).getNum();
+		ResultSet set = stmnt.executeQuery("SELECT * FROM courses");
+		while(set.next()) {
+			int id = set.getInt("ID");
+			String num = set.getString("Num");
 			String option = String.valueOf(id) + "   " + num;
 			
 			createEnrollmentCourseChoiceBox.getItems().add(option);
 		}
 	}
 	
-	public void createEnrollmentButtonListener() throws IOException{
+	public void createEnrollmentButtonListener() throws IOException, SQLException{
 		LOG("Create enrollment");
 		// enrollment id, course id, student id, year, semester, grade
 		int courseID = ExtractID(createEnrollmentCourseChoiceBox.getValue().trim());
@@ -1371,21 +1058,20 @@ public class MainController{
 		String semester = createEnrollmentSemesterChoiceBox.getValue().trim();
 		int year = Integer.parseInt(createEnrollmentYearChoiceBox.getValue().trim());
 		
-		int id = (EnrollmentLinkedList.isEmpty() || HighestList.getEID() != 0) ? HighestList.getEID() + 1 : 1;
+		int id = (IsEmpty("enrollments") || HighestList.getEID() != 0) ? HighestList.getEID() + 1 : 1;
 		Enrollment enrollment = new Enrollment(id, courseID, studentID, year, semester);
 		HighestList.setEID(enrollment.getEnrollmentId());
 		UpdateHighestFile();
 		
-		EnrollmentLinkedList.add(enrollment);
-		WriteToEnrollmentFile();
+		AddToDatabase(enrollment);
 		postAddEnrollment();
 	}
 	
-	private void postAddEnrollment() throws IOException{
+	private void postAddEnrollment() throws IOException, SQLException{
 		makeAllInvisible();
 		postAddEnrollmentVBOX.setVisible(true);
 		
-		Enrollment enrollment = EnrollmentLinkedList.getLast();
+		Enrollment enrollment = (Enrollment)GetHighestFrom("enrollments");
 		
 		postAddEnrollmentEID.setText(String.valueOf(enrollment.getEnrollmentId()));
 		postAddEnrollmentCID.setText(String.valueOf(enrollment.getCourseId()));
@@ -1395,15 +1081,14 @@ public class MainController{
 		postAddEnrollmentGrade.setText(enrollment.getGrade());
 	}
 	
-	public void postAddEnrollmentEditButtonListener() throws IOException{
+	public void postAddEnrollmentEditButtonListener() throws IOException, SQLException{
 		makeAllInvisible();
 		editEnrollmentHBOX.setVisible(true);
 		
-		enrollmentRecordNumberEditing = EnrollmentLinkedList.getLast().getEnrollmentId();
+		enrollmentRecordNumberEditing = GetHighestID("enrollments");
 		
-		Enrollment enrollment = EnrollmentLinkedList.getLast();
-		Student search = new Student(enrollment.getStudentId());
-		Student student = StudentLinkedList.get(search, true);
+		Enrollment enrollment = (Enrollment)GetHighestFrom("enrollments");
+		Student student = (Student)GetFrom("students", enrollment.getStudentId());
 		
 		editEnrollmentDisplayStudentID.setText(String.valueOf(student.getId()));
 		editEnrollmentDisplayStudentFirstName.setText(student.getFirstName());
@@ -1443,8 +1128,7 @@ public class MainController{
 			return;
 		}
 		
-		if(findEnrollment(courseID, studentID, year, semester)) {
-			gradeManagementJustSearched = true;
+		if(EnrollmentExists(courseID, studentID, year, semester)) {
 			displaySearchedStudentGM();
 		}
 		else {
@@ -1467,48 +1151,39 @@ public class MainController{
 		gradeManagementSaveIndicator.setText("");
 	}
 	
-	private boolean findEnrollment(int CID, int SID, int year, String semester) throws SQLException{
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
+	private boolean EnrollmentExists(int CID, int SID, int year, String semester) throws SQLException{
 		String query = "SELECT * FROM enrollments WHERE CID = " + CID + " AND SID = " + SID + " AND Year = " + year + " AND Semester LIKE '%" + semester + "%'";
 		ResultSet set = stmnt.executeQuery(query);
-		conn.close();
-		stmnt.close();
-		return set.next();
+		boolean bool = set.next();	
+		if(bool) 
+			searchedEnrollment = new Enrollment(set.getInt("EID"), set.getInt("CID"), set.getInt("SID"), set.getInt("Year"), set.getString("Semester"));
+		return bool;
 	}
 	
-	private boolean findEnrollment(int course, int year) throws SQLException{
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
+	private boolean EnrollmentExists(int course, int year) throws SQLException{
 		String query = "SELECT * FROM enrollments WHERE CID = " + course + " AND Year = " + year ;
 		ResultSet set = stmnt.executeQuery(query);
-		conn.close();
-		stmnt.close();
-		return set.next();
+		boolean bool = set.next();	
+		if(bool) 
+			searchedEnrollment = new Enrollment(set.getInt("EID"), set.getInt("CID"), set.getInt("SID"), set.getInt("Year"), set.getString("Semester"));
+		return bool;
 	}
 	
-	private List<Integer> findEnrollmentIDs(int course, int year) throws SQLException{
+	private List<Integer> FindEnrollmentIDs(int course, int year) throws SQLException{
 		List<Integer> ids = new ArrayList<Integer>();
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
-		String query = "SELECT ID FROM enrollments WHERE CID = " + course + " AND Year = " + year ;
+		String query = "SELECT * FROM enrollments WHERE CID = " + course + " AND Year = " + year ;
 		ResultSet set = stmnt.executeQuery(query);
 		
 		while(set.next())
-			ids.add(set.getInt("ID"));
+			ids.add(set.getInt("EID"));
 		
-		conn.close();
-		stmnt.close();
 		return ids;
 	}
 	
 	public int getHighestEnrollmentID() throws SQLException {
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
 		String query = "SELECT MAX(ID) FROM enrollments";
 		ResultSet set = stmnt.executeQuery(query);
-		conn.close();
-		stmnt.close();
+	
 		if(set.next())
 			return set.getInt(1);
 		return 0;
@@ -1516,13 +1191,11 @@ public class MainController{
 	
 	public void gradeManagementSaveChangesButtonListener() throws IOException, SQLException{
 		int enrollmentID = Integer.valueOf(gradeManagementDisplayEID.getText().trim());
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
+	
 		String query = "UPDATE enrollments SET Grade = '" + gradeManagementGradeChoiceBox.getValue().trim() + "' WHERE EID = " + enrollmentID;
 		stmnt.executeUpdate(query);
 		ResultSet updatedSet = stmnt.executeQuery("SELECT * FROM enrollments where EID = " + enrollmentID);
-		conn.close();
-		stmnt.close();
+	
 		updatedSet.next();
 		gradeManagementSaveIndicator.setText("Grade Saved: " + updatedSet.getString("Grade"));
 	}
@@ -1534,8 +1207,6 @@ public class MainController{
 		String semester = editEnrollmentSemesterChoiceBox.getValue().trim();
 		int year = Integer.parseInt(editEnrollmentYearChoiceBox.getValue().trim());
 		
-		Connection conn = DriverManager.getConnection(url, user, pass);
-		Statement stmnt = conn.createStatement();
 		// not sure if this is smart but doing multiple queries
 		String query = "UPDATE enrollments SET CID = " + courseID + " WHERE EID = " + enrollmentID;
 		stmnt.executeUpdate(query);
@@ -1545,23 +1216,21 @@ public class MainController{
 		stmnt.executeUpdate(query);
 		query = "UPDATE enrollments SET Year = " + year + " WHERE EID = " + enrollmentID;
 		stmnt.executeUpdate(query);
-		conn.close();
-		stmnt.close();
+	
 		displaySearchedEnrollment(enrollmentRecordNumberEditing);
 	}
 	
-	public void displayEnrollmentEditButtonListener() throws IOException{
+	public void displayEnrollmentEditButtonListener() throws IOException, SQLException{
 		makeAllInvisible();
 		editEnrollmentHBOX.setVisible(true);
 		
 		enrollmentRecordNumberEditing = (searchEnrollmentRequestedID == 0 || !enrollmentJustSearched) 
-											? EnrollmentLinkedList.getLast().getEnrollmentId()
+											? GetHighestID("enrollments")
 											: searchEnrollmentRequestedID;
 		
-		Enrollment searchE = new Enrollment(enrollmentRecordNumberEditing);
-		Enrollment enrollment = EnrollmentLinkedList.get(searchE, true);
-		Student searchS = new Student(enrollment.getStudentId());
-		Student student = StudentLinkedList.get(searchS, true);
+		Enrollment enrollment = (Enrollment)GetFrom("enrollments", enrollmentRecordNumberEditing);
+		
+		Student student = new Student(enrollment.getStudentId());
 		
 		editEnrollmentDisplayStudentID.setText(String.valueOf(student.getId()));
 		editEnrollmentDisplayStudentFirstName.setText(student.getFirstName());
@@ -1579,9 +1248,8 @@ public class MainController{
 		setUpEditForEnrollmentCourse(enrollment.getCourseId());
 	}
 	
-	private void displaySearchedEnrollment(int recordNumber) throws IOException{
-		Enrollment searchE = new Enrollment(recordNumber);
-		Enrollment enrollment = EnrollmentLinkedList.get(searchE, true);
+	private void displaySearchedEnrollment(int recordNumber) throws IOException, SQLException{
+		Enrollment enrollment = (Enrollment)GetFrom("enrollments", recordNumber);
 		makeAllInvisible();
 		displayEnrollmentVBOX.setVisible(true);
 		
@@ -1593,18 +1261,13 @@ public class MainController{
 		displayEnrollmentGrade.setText(enrollment.getGrade());		
 	}
 	
-	public void enrollmentSearchButtonListener() throws IOException{
+	public void enrollmentSearchButtonListener() throws IOException, SQLException{
 		searchEnrollmentRequestedID = Integer.valueOf(enrollmentSearchID.getText());
 		
-		if(EnrollmentLinkedList.isEmpty())
+		if(IsEmpty("enrollments"))
 			ErrorMessage("No enrollments have been created");
 		
-		boolean isInList = false;
-		for(int i = 0; i < EnrollmentLinkedList.size(); i++)
-			if(EnrollmentLinkedList.get(i).getEnrollmentId() == searchEnrollmentRequestedID) isInList = true;
-		
-		
-		if (isInList){
+		if (IdIsInDB(searchEnrollmentRequestedID, "enrollments")){
 			enrollmentJustSearched = true;
 			displaySearchedEnrollment(searchEnrollmentRequestedID);
 		}
@@ -1612,19 +1275,19 @@ public class MainController{
 			ErrorMessage("Invalid search");
 	}
 	
-	private void setUpEditForEnrollmentCourse(int courseID) throws IOException{
+	private void setUpEditForEnrollmentCourse(int courseID) throws IOException, SQLException{
 		editEnrollmentCourseChoiceBox.getItems().removeAll(editEnrollmentCourseChoiceBox.getItems());
-		
-		for(int i = 0; i < CourseLinkedList.size(); i++) {
-			int id = CourseLinkedList.get(i).getId();
-			String num = CourseLinkedList.get(i).getNum();
+		ResultSet set = stmnt.executeQuery("SELECT * FROM courses");
+		while(set.next()) {
+			int id = set.getInt("ID");
+			String num = set.getString("Num");
 			String option = String.valueOf(id) + "   " + num;
 			
 			editEnrollmentCourseChoiceBox.getItems().add(option);
 		}
 		
-		Course search = new Course(courseID);
-		String num = CourseLinkedList.get(search, true).getNum();
+		Course course = (Course)GetFrom("courses", courseID);
+		String num = course.getNum();
 		String option = String.valueOf(courseID) + "   " + num;
 		editEnrollmentCourseChoiceBox.setValue(option);
 	}
@@ -1636,31 +1299,26 @@ public class MainController{
 		listOfStudentInfo.getItems().removeAll(listOfStudentInfo.getItems());
 		int CID = ExtractID(searchReportCourseChoiceBox.getValue().trim());
 		int year = Integer.parseInt(searchReportYearChoiceBox.getValue().trim());
-		if(findEnrollment(CID, year)) {
-			listOfReportEnrollmentIds = findEnrollmentIDs(CID, year);
+		if(EnrollmentExists(CID, year)) {
+			listOfReportEnrollmentIds = FindEnrollmentIDs(CID, year);
 			if(listOfReportEnrollmentIds.isEmpty()) {
 				ErrorMessage("Invalid Search");
 				return;
 			}
 			
-			Enrollment searchE = new Enrollment(listOfReportEnrollmentIds.get(0));
-			Enrollment enrollment = EnrollmentLinkedList.get(searchE, true);
+			Enrollment enrollment = (Enrollment)GetFrom("enrollments", listOfReportEnrollmentIds.get(0));
 			
 			String header;
 			
-			Course searchC = new Course(enrollment.getCourseId());
-			Course course = CourseLinkedList.get(searchC, true);
+			Course course = (Course)GetFrom("courses", enrollment.getCourseId());
 			header = "Course: " + course.getName() + " ; " + enrollment.getYear() + " ; " + enrollment.getSemester();
 			ReportClassName.setText(header);
 			
 			String str;
-			Student searchS;
 			Student student;
 			for(int EID : listOfReportEnrollmentIds) {
-				searchE = new Enrollment(EID);
-				enrollment = EnrollmentLinkedList.get(searchE, true);
-				searchS = new Student(enrollment.getStudentId());
-				student = StudentLinkedList.get(searchS, true);
+				enrollment = (Enrollment)GetFrom("enrollments", EID);
+				student = (Student)GetFrom("students", enrollment.getStudentId());
 				
 				str = "Student ID: " + student.getId() + "; Student Name: " + student.getLastName() + ", " + student.getFirstName()
 						+ "; Grade: " + enrollment.getGrade();
@@ -1684,7 +1342,6 @@ public class MainController{
 			}
 			str += string.charAt(i);
 		}
-		System.out.println(str);
 		return Integer.parseInt(str);
 	}
 	
@@ -1698,17 +1355,17 @@ public class MainController{
 	
 	///////////////
 	// department
-	public void createDepartmentButtonListener() throws IOException {
+	public void createDepartmentButtonListener() throws IOException, SQLException {
 		String name = addDepartmentName.getText();
-		Department dep = new Department(DepartmentList.size() + 1, name);
-		DepartmentList.add(dep);
-		WriteToDepartmentFile();
+		Department dep = new Department(GetHighestID("departments") + 1, name);
+		LOG("Get highest: " + GetHighestID("departments"));
+		AddToDatabase(dep);
 		wipeDepartmentFormInfo();
 		postAddDepartment();
 		
 	}
 	
-	public void departmentSearchButtonListener() throws IOException{
+	public void departmentSearchButtonListener() throws IOException, SQLException{
 		try {
 			searchDepartmentRequestedID = Integer.parseInt(searchDepartmentTextField.getText());
 		}
@@ -1716,7 +1373,7 @@ public class MainController{
 			ErrorMessage("Invalid Search, IDs are numerical");
 		}
 		
-		if(searchDepartmentRequestedID < 1 || searchDepartmentRequestedID > DepartmentList.size())
+		if(searchDepartmentRequestedID < 1 || searchDepartmentRequestedID > GetHighestID("departments"))
 			ErrorMessage("Invalid Search");
 		else {
 			departmentJustSearched = true;
@@ -1724,13 +1381,13 @@ public class MainController{
 		}
 	}
 	
-	public void postAddDepartment() throws IOException{
+	public void postAddDepartment() throws IOException, SQLException{
 		LOG("Post add Department");
 		
 		makeAllInvisible();
 		postAddDepartmentVBOX.setVisible(true);
 		
-		Department dep = DepartmentList.get(DepartmentList.size() - 1);
+		Department dep = (Department)GetHighestFrom("departments");
 		postAddDepartmentID.setText(String.valueOf(dep.getId()));
 		postAddDepartmentName.setText(dep.getName());
 	}
@@ -1739,26 +1396,26 @@ public class MainController{
 		addDepartmentName.setText("");
 	}
 	
-	public void postAddDepartmentEditButtonListener() throws IOException{
+	public void postAddDepartmentEditButtonListener() throws IOException, SQLException{
 		makeAllInvisible();
 		editDepartmentVBOX.setVisible(true);
-		departmentRecordNumberEditing = DepartmentList.size();
-		Department dep = DepartmentList.get(departmentRecordNumberEditing - 1);
+		departmentRecordNumberEditing = GetHighestID("departments");
+		LOG("Get highest: " + GetHighestID("departments"));
+		Department dep = (Department)GetFrom("departments", departmentRecordNumberEditing);
 		editDepartmentName.setText(dep.getName());
 	}
 	
-	public void editDepartmentSaveChangesButtonListener() throws IOException{
+	public void editDepartmentSaveChangesButtonListener() throws IOException, SQLException{
 		String name = editDepartmentName.getText();
 		Department dep = new Department(departmentRecordNumberEditing, name);
 		
-		DepartmentList.get(departmentRecordNumberEditing - 1).copy(dep);
-		WriteToDepartmentFile();
+		EditDatabase(dep);
 		displaySearchedDepartment(departmentRecordNumberEditing);
 	}
 	
-	private void displaySearchedDepartment(int recordNumber) throws IOException{
+	private void displaySearchedDepartment(int recordNumber) throws IOException, SQLException{
 		LOG(recordNumber);
-		Department dep = DepartmentList.get(recordNumber - 1);
+		Department dep = (Department)GetFrom("departments", recordNumber);
 		
 		makeAllInvisible();
 		displayDepartmentVBOX.setVisible(true);
@@ -1767,27 +1424,26 @@ public class MainController{
 		displayDepartmentName.setText(dep.getName());
 	}
 	
-	public void displayDepartmentEditButtonListener() throws IOException{
+	public void displayDepartmentEditButtonListener() throws IOException, SQLException{
 		makeAllInvisible();
 		editDepartmentVBOX.setVisible(true);
 		
 		departmentRecordNumberEditing = (searchDepartmentRequestedID == 0 || !departmentJustSearched)
-											? DepartmentList.size()
+											? GetHighestID("departments")
 											: searchDepartmentRequestedID;
 		
-		Department dep = DepartmentList.get(departmentRecordNumberEditing - 1);
+		Department dep = (Department)GetFrom("departments", departmentRecordNumberEditing);
 		
 		editDepartmentName.setText(dep.getName());
 	}
 	
 	///////////////////
 	// instructor
-	public void createInstructorButtonListener() throws IOException{
+	public void createInstructorButtonListener() throws IOException, SQLException{
 		String name = addInstructorName.getText();
-		Department dep = DepartmentList.get(ExtractID(addInstructorDepartmentChoiceBox.getValue()) - 1); // get id from line
-		Instructor instruct = new Instructor(InstructorList.size() + 1, name, dep);
-		InstructorList.add(instruct);
-		WriteToInstructorFile();
+		int depID = ExtractID(addInstructorDepartmentChoiceBox.getValue()); // get id from line
+		Instructor instruct = new Instructor(GetHighestID("instructors") + 1, name, depID);
+		AddToDatabase(instruct);
 		wipeInstructorInfo();
 		postAddInstructor();
 	}
@@ -1797,88 +1453,87 @@ public class MainController{
 		addInstructorDepartmentChoiceBox.getItems().removeAll(addInstructorDepartmentChoiceBox.getItems());
 	}
 	
-	public void instructorSearchButtonListener() throws IOException{
+	public void instructorSearchButtonListener() throws IOException, SQLException{
 		try {
 			searchInstructorRequestedID = Integer.parseInt(searchInstructorTextField.getText());
 		}
 		catch(NumberFormatException e) {
 			ErrorMessage("Invalid Search, IDs are numerical");
 		}
-		if(searchInstructorRequestedID < 1 || searchInstructorRequestedID > InstructorList.size()) 
+		if(searchInstructorRequestedID < 1 || searchInstructorRequestedID > GetHighestID("instructors")) 
 			ErrorMessage("Invalid Search");
 		else {
 			instructorJustSearched = true;
-			System.out.println(searchInstructorRequestedID + " searc");
 			displaySearchedInstructor(searchInstructorRequestedID);
 		}
 	}
 	
-	public void postAddInstructor() throws IOException{
+	public void postAddInstructor() throws IOException, SQLException{
 		LOG("Post add Instructor");
 		
 		makeAllInvisible();
 		postAddInstructorVBOX.setVisible(true);
 		
-		Instructor instruct = InstructorList.get(InstructorList.size() - 1);
+		Instructor instruct = (Instructor)GetHighestFrom("instructors");
 		postAddInstructorID.setText(String.valueOf(instruct.getId()));
-		postAddInstructorDepName.setText(instruct.getDepName());
+		postAddInstructorDepName.setText(GetDepartmentName(instruct.getDepID()));
 		postAddInstructorName.setText(instruct.getName());
 	}
 	
-	public void postAddInstructorEditButtonListener() throws IOException{
+	public void postAddInstructorEditButtonListener() throws IOException, SQLException{
 		makeAllInvisible();
 		editInstructorVBOX.setVisible(true);
-		instructorRecordNumberEditing = InstructorList.size();
-		Instructor instruct = InstructorList.get(instructorRecordNumberEditing - 1);
+		instructorRecordNumberEditing = GetHighestID("instructors");
+		Instructor instruct = (Instructor)GetHighestFrom("instructors");
 		editInstructorName.setText(instruct.getName());
 		editInstructorDepartmentChoiceBox.getItems().removeAll(editInstructorDepartmentChoiceBox.getItems());
-		DepartmentList.forEach(dep ->
-		{
-			String option = dep.getId() + "\t" + dep.getName();
+		ResultSet set = stmnt.executeQuery("SELECT * FROM departments");
+		while(set.next()){
+			String option = set.getInt("ID") + "    " + set.getString("Name");
 		 	editInstructorDepartmentChoiceBox.getItems().add(option);
-		});
-		editInstructorDepartmentChoiceBox.setValue(instruct.getDep().getId() + "\t" + instruct.getDepName());
+		}
+		editInstructorDepartmentChoiceBox.setValue(instruct.getDepID() + "\t" + GetDepartmentName(instruct.getDepID()));
 	}
 	
-	public void editInstructorSaveChangesButtonListener() throws IOException{
+	public void editInstructorSaveChangesButtonListener() throws IOException, SQLException{
 		String name = editInstructorName.getText();
-		Department dep = DepartmentList.get(ExtractID(editInstructorDepartmentChoiceBox.getValue()) - 1);
-		Instructor instruct = new Instructor(instructorRecordNumberEditing, name, dep);
-		InstructorList.get(instructorRecordNumberEditing - 1).copy(instruct);
-		WriteToInstructorFile();
+		Department dep = (Department)GetFrom("departments", ExtractID(editInstructorDepartmentChoiceBox.getValue()));
+		Instructor instruct = new Instructor(instructorRecordNumberEditing, name, dep.getId());
+		EditDatabase(instruct);
 		displaySearchedInstructor(instructorRecordNumberEditing);
 	}
 	
-	public void displaySearchedInstructor(int recordNumber) throws IOException{
+	public void displaySearchedInstructor(int recordNumber) throws IOException, SQLException{
 		LOG(recordNumber);
-		Instructor instruct = InstructorList.get(recordNumber - 1);
+		Instructor instruct = (Instructor)GetFrom("instructors", recordNumber);
 		
 		makeAllInvisible();
 		
 		displayInstructorVBOX.setVisible(true);
 		
 		displayInstructorID.setText(String.valueOf(instruct.getId()));
-		displayInstructorDepName.setText(instruct.getDepName());
+		displayInstructorDepName.setText(GetDepartmentName(instruct.getDepID()));
 		displayInstructorName.setText(instruct.getName());
 	}
 	
-	public void displayInstructorEditButtonListener() throws IOException{
+	public void displayInstructorEditButtonListener() throws IOException, SQLException{
 		makeAllInvisible();
 		editInstructorVBOX.setVisible(true);
 		
 		instructorRecordNumberEditing = (searchInstructorRequestedID == 0 || !instructorJustSearched)
-											? InstructorList.size()
+											? GetHighestID("instructors")
 											: searchInstructorRequestedID;
 		
-		Instructor instruct = InstructorList.get(instructorRecordNumberEditing - 1);
+		Instructor instruct = (Instructor)GetHighestFrom("instructors");
 		editInstructorName.setText(instruct.getName());
 		editInstructorDepartmentChoiceBox.getItems().removeAll(editInstructorDepartmentChoiceBox.getItems());
-		DepartmentList.forEach(dep ->
+		ResultSet set = stmnt.executeQuery("SELECT * FROM departments");
+		while(set.next())
 		{
-			String option = dep.getId() + "\t" + dep.getName();
+			String option = set.getInt("ID") + "   " + set.getString("Name");
 		 	editInstructorDepartmentChoiceBox.getItems().add(option);
-		});
-		editInstructorDepartmentChoiceBox.setValue(instruct.getDep().getId() + "\t" + instruct.getDepName());
+		}
+		editInstructorDepartmentChoiceBox.setValue(instruct.getDepID() + "    " + GetDepartmentName(instruct.getDepID()));
 	}
 	
 	//////////////////////
@@ -1886,7 +1541,7 @@ public class MainController{
 	public void sortStudentsButtonListener() {
 		LOG("Sort students");
 		makeAllInvisible();
-		if(StudentLinkedList.isEmpty()) ErrorMessage("No Students have been made");
+		if(IsEmpty("students")) ErrorMessage("No Students have been made");
 		else {
 			sortStudentsVBOX.setVisible(true);
 			updateListOfStudents();
@@ -1940,216 +1595,8 @@ public class MainController{
 	
 	public static void main(String[] args) throws IOException{}
 }
-	
-class ObjLinkedList<T extends Comparable<T>> implements Serializable{
-	private class Node implements Serializable{
-		private T obj;
-		Node next;
-		
-		public Node(T obj, Node next) {
-			this.obj = obj;
-			this.next = next;
-		}
-		
-		public Node(T obj) {
-			this.obj = obj;
-			this.next = null;
-		}
-	}
-	
-	private Node first;
-	private int IndexCounter;
-	public static boolean doEqualsInstead;
-	
-	public ObjLinkedList() {
-		this.first = null;
-	}
-	
-	public boolean isEmpty() {
-		return this.first == null;
-	}
-	
-	public int size() {
-		return size(first);
-	}
-	
-	private int size(Node list) {
-		if(list == null)
-			return 0;
-		else
-			return size(list.next) + 1; 
-	}
-	
-	public void add(T obj) {
-		IndexCounter = 0;
-		this.first = add(obj, this.first);
-	}
-	
-	public Node add(T obj, Node list) {
-		if(list == null) 
-			return new Node(obj);
-		else {
-			list.next = add(obj, list.next);
-			return list;
-		}
-	}
-	
-	// add based on index??
-	public boolean add(T obj, int index) {
-		// if index is greater than total number of tings, less than 0, or if list is empty, return false
-		if(isEmpty() || index > size() || index < 0)
-			return false;
-		
-		if(index == 0)  
-			first.obj = obj;
-		else {
-			Node p = first;
-			
-			// traverse list until predecessor is reached
-			for(int k = 1; k < index; k++)
-				p = p.next;
-			
-			p.next.obj = obj;
-		}
-		return true;
-	}
-	
-	// using recursion, index will be target obj (0 index = 1st obj)
-	public T get(int index) {
-		IndexCounter = 0;
-		return get(index, first);
-	}
-	
-	private T get(int index, Node list) {
-		// if list is empty
-		if(list == null) {
-			String message = String.valueOf(index);
-			throw new IndexOutOfBoundsException(message);
-		}
-		
-		// if the indexcounter == index desired
-		if(IndexCounter == index)
-			return list.obj;
-		else { // indexcounter will be incremented
-			IndexCounter++;
-			return get(index, list.next); // recursion
-		} 
-	}
-	
-	public T get(T obj, boolean doEquals) {
-		return get(getIndex(obj, doEquals));
-	}
-	
-	public int getIndex(T obj, boolean doEquals) {
-		Node p = first;
-		int indexCounter = 0;
-		
-		doEqualsInstead = doEquals;
-		
-		if(first.obj.compareTo(obj) == 1) return indexCounter;
-		
-		while(p.next != null && p.obj.compareTo(obj) == 0) {
-			p = p.next;
-			indexCounter++;
-		}
-		
-		doEqualsInstead = false;
-		
-		return indexCounter;
-	}
-	
-	
-	// will remove based on obj selected, will most likely delete and just use index
-	public boolean remove(T remObj) {
-		// if linked list is empty
-		if(this.isEmpty()) 
-			return false; // failure to remove
-		
-		// will use overriden compareTo to decide if the remObj is the first Obj
-		if(first.obj.compareTo(remObj) == 1) {
-			first = first.next;
-			return true; // successful removal
-		}
-		else {
-			Node p = first;
-			// traverse through linked list until the end
-			while(p.next != null) {
-				// if the next obj is the desired remobj
-				if(p.next.obj.compareTo(remObj) == 1) {
-					// next will become 2nd next, removing the og next
-					p.next = p.next.next;
-					return true; // successful removal
-				}
-				p = p.next; // traverse
-			}
-			return false; // failure to remove
-		}
-	}
-	
-	// will remove based on index
-	public boolean remove(int index) {
-		// if index is greater than total number of tings, less than 0, or if list is empty, return false
-		if(isEmpty() || index > size() || index < 0)
-			return false;
-		
-		if(index == 0)  
-			first = first.next;
-		else {
-			Node p = first;
-			
-			// traverse list until predecessor is reached
-			for(int k = 1; k < index; k++)
-				p = p.next;
-			
-			p.next = p.next.next;
-		}
-		return true;
-	}
-	
-	public T getLast() {
-		Node p = first;
-		if(p == null) return null;
-		
-		while(p.next != null) p = p.next;
-		
-		return p.obj;
-	}
-	
-	public void sort() {
-		Node current = first, index = null;
-		T temp;
-		
-		if(first == null) return;
-		else {
-			while(current != null) {
-				index = current;
-				
-				while(index != null) {
-					if(current.obj.compareTo(index.obj) > 0) {
-						temp = current.obj;
-						current.obj = index.obj;
-						index.obj = temp;
-					}
-					index = index.next;
-				}
-				current = current.next;
-			}
-		}
-	}
-	
-	public String toString() {
-		StringBuilder strBuilder = new StringBuilder();
-		Node p = this.first;
-		while(p != null) {
-			strBuilder.append(p.obj + "\n");
-			p = p.next;
-		}
-		return strBuilder.toString();
-	}
-	
-}
 
-class Student implements Comparable<Student>, Serializable{
+class Student{
 	private int id = 0; // 4 bytes
 	private String firstName = "", lastName = "", address = "", city = "", state = "";
 	// 20 chars each -> 40 bytes each, 4 strings = 40 * 5 = 200
@@ -2194,29 +1641,6 @@ class Student implements Comparable<Student>, Serializable{
 		this.city = s.city;
 		this.state = s.state;
 	}
-	
-	// will be the sorting method, by lexical order
-	@Override
-	public int compareTo(Student o) {
-		System.out.println("Comparing (" + ObjLinkedList.doEqualsInstead + ")");
-		// will compare last name of this to last name of inputted ting
-		// 0 = equal strings
-		// positive return = this is after arg alphabetically
-		// negative return = this is before arg alphabetically
-		if(ObjLinkedList.doEqualsInstead) {
-			if(this.id == o.getId()) return 1;
-			else return 0;
-		}
-		else {
-			int result = this.lastName.compareTo(o.getLastName());
-			if(result > 0) {
-				//int temp = o.id;
-				//o.setId(this.id);
-				//this.setId(temp);
-			}
-			return result;
-		}
-	}
 }
 
 /*
@@ -2228,7 +1652,7 @@ class Student implements Comparable<Student>, Serializable{
  * short  = 2 bytes
  */
 
-class Course implements Comparable<Course>, Serializable{
+class Course{
 	private int id = 0; // 4 bytes
 	private String num = "", name = "";
 	int instruct = 0;
@@ -2247,13 +1671,13 @@ class Course implements Comparable<Course>, Serializable{
 	public void setNum(String num) {this.num = num;}
 	public void setId(int id) {this.id = id;}
 	public void setName(String name) {this.name = name;}
-	public void setInstructID(int instruct) {this.instruct = instruct;}
+	public void setInstructorID(int instruct) {this.instruct = instruct;}
 	public void setDepartmentID(int department) {this.department = department;}
 	
 	public String getNum() {return this.num;}
 	public int getId() {return this.id;}
 	public String getName() {return this.name;}
-	public int getInstructID() {return this.instruct;}
+	public int getInstructorID() {return this.instruct;}
 	public int getDepartmentID() {return this.department;}
 	
 	public String toString() {
@@ -2269,28 +1693,6 @@ class Course implements Comparable<Course>, Serializable{
 		this.instruct = c.instruct;
 		this.department = c.department;
 	}
-	
-	// will be sorting method, compare by name
-	// 0 = same department
-	// positive = this comes after arg
-	// negative = this comes before arg
-	@Override
-	public int compareTo(Course o) {
-		System.out.println("Comparing (" + ObjLinkedList.doEqualsInstead + ") ");
-		if(ObjLinkedList.doEqualsInstead) {
-			if(this.id == o.getId()) return 1;
-			else return 0;
-		}
-		else{
-			int result = this.department.compareTo(o.getDepartment());
-			if(result > 0) {
-				//int temp = o.id;
-				//o.setId(this.id);
-				//this.setId(temp);
-			}
-			return result;
-		}
-	}
 }
 
 /*
@@ -2302,7 +1704,7 @@ class Course implements Comparable<Course>, Serializable{
  * short  = 2 bytes
  */
 
-class Enrollment implements Comparable<Enrollment>, Serializable{
+class Enrollment{
 	private int enrollmentId = 0; // 4
 	private int studentId = 0; // 4
 	private int courseId = 0; // 4
@@ -2357,27 +1759,10 @@ class Enrollment implements Comparable<Enrollment>, Serializable{
 		
 		return str;
 	}
-
-	// will be sorting method, compare by student id
-	// 0 = same id
-	// -x = less than
-	// x = greater than
-	@Override
-	public int compareTo(Enrollment o) {
-		System.out.println("Comparing (" + ObjLinkedList.doEqualsInstead + ")");
-		if(ObjLinkedList.doEqualsInstead) {
-			if(this.enrollmentId == o.getEnrollmentId()) return 1;
-			else return 0;
-		}
-		else {
-			if(this.studentId == o.getStudentId()) return 1;
-			else return 0;
-		}
-	}
 }
 
 
-class Department implements Serializable{
+class Department{
 	private String name;
 	private int id;
 	
@@ -2405,7 +1790,7 @@ class Department implements Serializable{
 	}
 }
 
-class Instructor implements Serializable{
+class Instructor{
 	private String name;
 	private int depID;
 	private int id;
