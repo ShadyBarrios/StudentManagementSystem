@@ -11,13 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import com.mysql.cj.jdbc.exceptions.CommunicationsException;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -34,6 +38,8 @@ public class MainController{
 	public static Highest HighestList;
 	public static int studentRecordNumberEditing = 0, courseRecordNumberEditing = 0, enrollmentRecordNumberEditing = 0, departmentRecordNumberEditing = 0;
 	public static int instructorRecordNumberEditing = 0;
+	@FXML
+	private MenuBar MenuOptionBar;
 	@FXML
 	private MenuItem addStudentButton,addCourseButton,addEnrollmentButton;
 	@FXML
@@ -141,7 +147,7 @@ public class MainController{
 	@FXML
 	private Label displayInstructorName, ReportClassName;
 	@FXML
-	private ChoiceBox<String> editInstructorDepartmentChoiceBox;
+	private ChoiceBox<String> editInstructorDepartmentChoiceBox, searchReportTermChoiceBox;
 	@FXML
 	private TextField editInstructorName, gradeManagementCourseID;
 	@FXML
@@ -176,7 +182,7 @@ public class MainController{
 		
 		File appconfig = new File("src/application/AppConfig.txt");
 		Scanner fileScanner = new Scanner(appconfig);
-		if(fileScanner.hasNextLine())
+		if(fileScanner.hasNextLine()) 
 			url = fileScanner.nextLine();
 		else
 			System.out.println("no url");
@@ -193,7 +199,10 @@ public class MainController{
 		
 		HighestFile = new File("HighestFile.dat");
 		
-		TruncateDB(true);
+		// terminates method and basically makes app a potato if 
+		// network fails
+		if(TruncateDB(true))
+			return;
 		StuCallable = conn.prepareCall("{CALL GetSortedStudents()}");
 		
 		addCourseDepartmentChoiceBox.setOnAction(event -> {
@@ -217,11 +226,19 @@ public class MainController{
 		MenuLabel.setVisible(true);
 	}
 	
-	private void TruncateDB(boolean doTruncate) throws ClassNotFoundException, IOException, SQLException {
+	private boolean TruncateDB(boolean doTruncate) throws ClassNotFoundException, IOException, SQLException {
 		SetUpHighestList(doTruncate);
 		try {
 			// will create conn and stmnt for future use
-			conn = DriverManager.getConnection(url, user, pass);
+			try {
+				conn = DriverManager.getConnection(url, user, pass);
+			}
+			catch(CommunicationsException e) {
+				ErrorMessage("Connection/Internet Failed. Please Try Again.");
+				// disable the menu
+				MenuOptionBar.setDisable(true);
+				return true; // only returns true if this exception is thrown
+			}
 			stmnt = conn.createStatement();
 				if(doTruncate){
 					int rows = 0;
@@ -233,12 +250,13 @@ public class MainController{
 					
 					System.out.println(rows + " total rows deleted\n");
 				
-					return;
+					return false;
 				}
 		} catch (SQLException e) {
 			System.out.println("Exception: " + e);
 		}
 		System.out.println("Did not truncate");
+		return false;
 	}
 	
 	private boolean IdIsInDB(int id, String table) {
@@ -509,29 +527,32 @@ public class MainController{
 		ObjectHighestInput.close();
 	}
 	
-	private static void DeleteStudentFromDatabase(int stuID) throws IOException {
+	private static boolean DeleteStudentFromDatabase(int stuID) throws IOException {
 		try{
-			String deleteQuery = "DELETE * FROM students WHERE ID = " + stuID;
+			String deleteQuery = "DELETE FROM students WHERE ID = " + stuID;
 			stmnt.executeUpdate(deleteQuery);
-			deleteQuery = "DELETE * FROM enrollments WHERE SID = " + stuID;
+			deleteQuery = "DELETE FROM enrollments WHERE SID = " + stuID;
 			stmnt.executeUpdate(deleteQuery);
-			
 		}
 		catch(Exception e) {
 			System.out.println("Exception: " + e.getMessage());
+			return false;
 		}
+		return true;
 	}
 	// same as method above
-	private static void DeleteCourseFromDatabase(int corID) throws IOException {
+	private static boolean DeleteCourseFromDatabase(int corID) throws IOException {
 		try{
-			String deleteQuery = "DELETE * FROM courses WHERE ID = " + corID;
+			String deleteQuery = "DELETE FROM courses WHERE ID = " + corID;
 			stmnt.executeUpdate(deleteQuery);
-			deleteQuery = "DELETE * FROM enrollments WHERE CID = " + corID;
+			deleteQuery = "DELETE FROM enrollments WHERE CID = " + corID;
 			stmnt.executeUpdate(deleteQuery);
 		}
 		catch(Exception e) {
 			System.out.println("Exception: " + e.getMessage());
+			return false;
 		}
+		return true;
 	}
 	
 	private static void LOG(String str) {System.out.println(str);}
@@ -695,6 +716,8 @@ public class MainController{
 			
 			searchReportYearChoiceBox.getItems().removeAll(searchReportYearChoiceBox.getItems());
 			searchReportYearChoiceBox.getItems().addAll("2019","2020","2021","2022");
+			searchReportTermChoiceBox.getItems().removeAll(searchReportTermChoiceBox.getItems());
+			searchReportTermChoiceBox.getItems().addAll("Spring", "Summer", "Fall", "Winter");
 		}	
 	}
 	
@@ -848,8 +871,10 @@ public class MainController{
 	
 	public void deleteStudentButtonListener() throws IOException {
 		int id = studentRecordNumberEditing;
-		DeleteStudentFromDatabase(id);
-		ErrorMessage("Student Deleted");
+		if(DeleteStudentFromDatabase(id)) // true if successful
+			ErrorMessage("Student Deleted");
+		else 
+			ErrorMessage("Deletion Failed");
 	}
 	
 	/////////////
@@ -1013,8 +1038,10 @@ public class MainController{
 	
 	public void deleteCourseButtonListener() throws IOException {
 		int id = courseRecordNumberEditing;
-		DeleteCourseFromDatabase(id);
-		ErrorMessage("Course Deleted");
+		if(DeleteCourseFromDatabase(id))
+			ErrorMessage("Course Deleted");
+		else
+			ErrorMessage("Deletion Failed");
 	}
 	
 	// 10/24 LEFT OFF HERE
@@ -1178,12 +1205,12 @@ public class MainController{
 		ResultSet set = stmnt.executeQuery(query);
 		boolean bool = set.next();	
 		if(bool) 
-			searchedEnrollment = new Enrollment(set.getInt("EID"), set.getInt("CID"), set.getInt("SID"), set.getInt("Year"), set.getString("Semester"));
+			searchedEnrollment = new Enrollment(set.getInt("EID"), set.getInt("CID"), set.getInt("SID"), set.getInt("Year"), set.getString("Semester"), set.getString("Grade"));
 		return bool;
 	}
 	
-	private boolean EnrollmentExists(int course, int year) throws SQLException{
-		String query = "SELECT * FROM enrollments WHERE CID = " + course + " AND Year = " + year ;
+	private boolean EnrollmentExists(int course, int year, String semester) throws SQLException{
+		String query = "SELECT * FROM enrollments WHERE CID = " + course + " AND Year = " + year + " AND Semester LIKE '%" + semester + "%'";
 		ResultSet set = stmnt.executeQuery(query);
 		boolean bool = set.next();	
 		if(bool) 
@@ -1191,9 +1218,9 @@ public class MainController{
 		return bool;
 	}
 	
-	private List<Integer> FindEnrollmentIDs(int course, int year) throws SQLException{
+	private List<Integer> FindEnrollmentIDs(int course, int year, String semester) throws SQLException{
 		List<Integer> ids = new ArrayList<Integer>();
-		String query = "SELECT * FROM enrollments WHERE CID = " + course + " AND Year = " + year ;
+		String query = "SELECT * FROM enrollments WHERE CID = " + course + " AND Year = " + year + " AND Semester LIKE '%" + semester + "%'";
 		ResultSet set = stmnt.executeQuery(query);
 		
 		while(set.next())
@@ -1253,7 +1280,7 @@ public class MainController{
 		
 		Enrollment enrollment = (Enrollment)GetFrom("enrollments", enrollmentRecordNumberEditing);
 		
-		Student student = new Student(enrollment.getStudentId());
+		Student student = (Student) GetFrom("enrollments", enrollment.getStudentId());
 		
 		editEnrollmentDisplayStudentID.setText(String.valueOf(student.getId()));
 		editEnrollmentDisplayStudentFirstName.setText(student.getFirstName());
@@ -1323,8 +1350,9 @@ public class MainController{
 		int CID = ExtractID(searchReportCourseChoiceBox.getValue().trim());
 		if(CID == -1) return;
 		int year = Integer.parseInt(searchReportYearChoiceBox.getValue().trim());
-		if(EnrollmentExists(CID, year)) {
-			listOfReportEnrollmentIds = FindEnrollmentIDs(CID, year);
+		String term = searchReportTermChoiceBox.getValue().trim();
+		if(EnrollmentExists(CID, year, term)) {
+			listOfReportEnrollmentIds = FindEnrollmentIDs(CID, year, term);
 			if(listOfReportEnrollmentIds.isEmpty()) {
 				ErrorMessage("Invalid Search");
 				return;
@@ -1865,6 +1893,8 @@ class Instructor{
 }
 
 class Highest implements Serializable{
+	// auto generated
+	private static final long serialVersionUID = 6423487012189695211L;
 	public int SID, CID, EID;
 	
 	public int getSID() {return SID;}

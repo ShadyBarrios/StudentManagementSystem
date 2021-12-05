@@ -15,8 +15,8 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainController">
    <children>
-      <Label fx:id="MenuLabel" layoutX="286.0" layoutY="191.0" text="Menu" visible="false" />
-      <MenuBar layoutY="1.0" prefHeight="26.0" prefWidth="600.0">
+      <Label fx:id="MenuLabel" alignment="CENTER" layoutX="148.0" layoutY="190.0" prefHeight="17.0" prefWidth="306.0" text="Menu" />
+      <MenuBar fx:id="MenuOptionBar" layoutY="1.0" prefHeight="26.0" prefWidth="600.0">
         <menus>
           <Menu mnemonicParsing="false" text="Add">
             <items>
@@ -317,7 +317,7 @@
                         <Insets right="28.0" />
                      </HBox.margin>
                   </Label>
-                  <ChoiceBox fx:id="editCourseInstructorChoiceBox" onContextMenuRequested="#updateInstructorListEditCourseChoiceBox" prefHeight="26.0" prefWidth="150.0" />
+                  <ChoiceBox fx:id="editCourseInstructorChoiceBox" prefHeight="26.0" prefWidth="150.0" />
                </children>
             </HBox>
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
@@ -369,7 +369,7 @@
                         <Insets right="28.0" />
                      </HBox.margin>
                   </Label>
-                  <ChoiceBox fx:id="addCourseInstructorChoiceBox" onContextMenuRequested="#updateInstructorListAddCourseChoiceBox" prefHeight="26.0" prefWidth="150.0" />
+                  <ChoiceBox fx:id="addCourseInstructorChoiceBox" prefHeight="26.0" prefWidth="150.0" />
                </children>
             </HBox>
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
